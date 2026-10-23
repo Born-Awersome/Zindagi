@@ -82,3 +82,9 @@ Tests cover auth, cross-user access, scoring/timing and duplicate completion, gu
 - `vite.config.js`, `scripts/dev.js`: development proxy and combined startup.
 
 Vite updates the frontend as you edit; Node restarts the API when backend files change. API restarts clear temporary location presence, but keep account data. Fonts use an optional Google Fonts stylesheet with local fallbacks.
+
+## Adventure interface
+
+The dashboard now has a player card, level progress, color-coded quest cards, and a skill constellation. Every five total points raises your player level. **View quest briefing** explains a task before you accept it; **Enter focus mode** opens a distraction-free timer with pause/resume. Completing a session shows its point reward and celebrates level-ups. **My profile → Achievements** shows unlock requirements and progress for four badges. Badges are derived from existing points and never grant extra competitive points.
+
+The new visual layer lives in `src/game.css`; reusable illustrations, icons, level calculations, and badge definitions live in `src/game.js`. It supports mobile navigation, keyboard-operable dialogs, and reduced-motion preferences. Signed-out demo mode and account-backed scoring remain separate.
