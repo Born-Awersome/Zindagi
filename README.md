@@ -32,11 +32,11 @@ Open `http://localhost:3001`. The backend serves both `dist/` and `/api`. `npm r
 5. For nearby matching, both accounts must enable profile discovery and choose **Share approximate location** on Guilds. Location requires HTTPS or localhost. Browser/device permissions may still deny access.
 6. **Community** recommends actual opt-in accounts. New databases have no fake accounts or scores; empty results are expected until others sign up. Recommendations refresh on page navigation and via Refresh.
 
-Your local demo progress is preserved separately and is never imported into competitive scores. Sign out to try accelerated 20-second demo sessions. Signed-in tasks use their full duration, including **50 minutes study + 10 minutes rest = 1 Academic Point**.
+Your local demo progress is preserved separately and is never imported into competitive scores. Sign out to try accelerated 20-second demo sessions for timed quests. Cultural always requires a fresh camera recording, even in demo mode. Signed-in timed tasks use their full duration, including **50 minutes study + 10 minutes rest = 1 Academic Point**.
 
 ## Backend behavior
 
-- SQLite is created automatically at `data/zindagi.sqlite` and excluded from Git. It stores profiles, salted scrypt password hashes, hashed expiring session tokens, task sessions/awards, connections, blocks, guilds, and memberships.
+- SQLite is created automatically at `data/zindagi.sqlite` and excluded from Git. It stores profiles, salted scrypt password hashes, hashed expiring session tokens, task sessions/awards, recording receipts (hash, size, MIME type), connections, blocks, guilds, and memberships. No video or audio is stored.
 - Authentication uses a random token in an HttpOnly, SameSite=Strict cookie. Production cookies require HTTPS. State-changing requests require the same-origin custom request header; cross-origin browser requests are rejected. API bodies and auth request rates are bounded.
 - The server owns task durations, pause/resume timestamps, categories, and rewards. One active session per account; completion is transactional and idempotent. Browser-submitted points/durations cannot award extra points. Timing verifies elapsed time, **not actual study or exercise**.
 - Adding a person to your circle is a one-way bookmark; it does not send them a message. Hiding a person excludes discovery in both directions. Shared guild membership still exposes member names and scores to fellow members.
@@ -88,3 +88,43 @@ Vite updates the frontend as you edit; Node restarts the API when backend files 
 The dashboard now has a player card, level progress, color-coded quest cards, and a skill constellation. Every five total points raises your player level. **View quest briefing** explains a task before you accept it; **Enter focus mode** opens a distraction-free timer with pause/resume. Completing a session shows its point reward and celebrates level-ups. **My profile → Achievements** shows unlock requirements and progress for four badges. Badges are derived from existing points and never grant extra competitive points.
 
 The new visual layer lives in `src/game.css`; reusable illustrations, icons, level calculations, and badge definitions live in `src/game.js`. It supports mobile navigation, keyboard-operable dialogs, and reduced-motion preferences. Signed-out demo mode and account-backed scoring remain separate.
+
+
+## Cultural: record your talent
+
+The fifth aspect is now **Cultural**. Choose **Record talent** on its quest card, or open the quest briefing and accept it:
+
+1. Enable camera and microphone access. Nothing records until you press **Start recording**.
+2. Perform a short piece of music, guitar, singing, dance, or another cultural talent. Press **Stop recording** when finished. The 60-second maximum bounds clip size; it is not a task countdown or a reward for waiting.
+3. Play back your take. **Retake** discards it and lets you capture a new one.
+4. **Submit performance** awards **1 Cultural Point**. There is no file input, gallery picker, or drag-and-drop import. Ending/closing without submission gives no point.
+
+Recording requires a supported `MediaRecorder` browser (current Chrome, Edge, Firefox, or Safari), a camera and microphone, and **localhost or HTTPS**. Access from a plain HTTP Wi-Fi address usually cannot record. Permission denial shows a retry message instead of offering file selection. Devices stop after recording, when the tab is hidden, or when the dialog closes. If a crash leaves a pending server session, use **Discard an unfinished recording** after the conflict message; otherwise it expires after 15 minutes.
+
+In local demo mode, the clip exists only in memory and never leaves the browser. For a signed-in account, clicking Submit transfers the captured clip to the same backend. The server accepts supported WebM/MP4 containers up to 15 MiB with an owned, unexpired recording session; it rejects empty/malformed submissions and exact duplicate clips per account. Awards and receipts commit together, and retries of an accepted submission cannot add a second point. The server discards the bytes after processing and saves only a hash, byte count, MIME type, and award. There is no public recording feed or archive.
+
+The supported interface is direct capture only. Container checks and recording-session ownership are **not** forensic liveness checks, talent assessment, or proof against a modified client submitting synthetic/re-encoded media. A production verified competition would need a separate verification design; this release does not claim one.
+
+Existing **Creativity** points, interests, local history, and guild focuses migrate to Cultural without changing totals. Unfinished legacy creative timers are cancelled so they cannot award a recording point. The migration is idempotent on both the server and in browser state.
+
+- `src/cultural-recorder.js`: permission, live preview, recording, review, cleanup, and retry UI.
+- `src/recording-policy.js`: supported types and capture limits.
+- `server/recordings.js`: recording endpoints, validation, receipts, and database migration.
+- `test/cultural.test.js`: migration, recording-only awards, API ownership, cancellation/expiry, and duplicate prevention.
+
+## Themes and guild quests
+
+The dashboard features **“Less scrolling. More becoming.”** and **“Your next level is real life.”** Use the Light mode / Dark mode button in the header; the choice is remembered in this browser.
+
+Sign in, open **Guilds**, then choose **Tasks & leaderboard** on a joined guild. The account that created the guild is its leader and can:
+- Open **Create a quest**, write the title and instructions, choose an aspect, and assign **1–100 guild points**.
+- Close or reopen quests. Reward values are fixed at creation.
+- Approve submissions or request another attempt.
+
+Members describe their completed work and submit it for approval. Cultural guild quests instead require a fresh in-app camera and microphone recording, with review/retake before submission. The leader sees a recording receipt, not playable media: clips are discarded after processing. This is an honor-based review system, not automated talent verification.
+
+Each member can earn each quest's reward once. Local rankings combine existing all-time category points with approved rewards from that specific guild; aspect filters include matching custom quests. Guild rewards do **not** change global points, profile stats, or another guild's leaderboard. Leaders must remain guild members to manage quests (rejoining restores the founder's role).
+
+Task definitions, submissions, and approved rewards persist in SQLite. The schema is installed automatically when the server starts; no manual SQL commands are needed.
+
+Implementation: `src/theme.js`, `src/light.css`, `src/guild-quests.js`, and `server/guild-tasks.js`. Tests include leader permissions, approval/rejection, repeat safety, isolated scoring, and Cultural guild submissions.

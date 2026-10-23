@@ -1,0 +1,61 @@
+.theme-switch{white-space:nowrap}.quest-form{display:grid;gap:14px;max-width:600px;padding:20px 0}.quest-form label,.guild-quest label{display:grid;gap:8px}.guild-quest-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:16px;margin:20px 0}.guild-quest{padding:20px;border:1px solid var(--border);border-radius:12px;margin-bottom:12px}.guild-quest h3{margin:14px 0 8px}.guild-quest p{line-height:1.7;overflow-wrap:anywhere;white-space:pre-wrap}.guild-quest form{display:grid;gap:12px}.guild-quest textarea,.quest-form textarea{min-height:80px;width:100%;resize:vertical;padding:12px;border-radius:8px;background:#242131;color:#eee;border:1px solid #514462;font:inherit}.guild-quest>.text-button{margin-top:12px}.guild-quests summary{cursor:pointer;color:var(--green);padding:16px 0;font-weight:700}
+:root[data-theme=light]{color-scheme:light;--green:#49683b;--muted:#656577;--border:#dadbe5;background:#f5f5fa;color:#2d3041}
+[data-theme=light] body{background:radial-gradient(ellipse at top right,#e6efdf,transparent 50%),#f5f5fa;color:#2d3041}
+[data-theme=light] h1,[data-theme=light] h2,[data-theme=light] h3{color:#292d40}
+[data-theme=light] .sidebar,[data-theme=light] header{background:#fff;border-color:#e4e3ec}
+[data-theme=light] .brand,[data-theme=light] .sidebar-profile strong{color:#353148}
+[data-theme=light] .nav-item{color:#68627b}
+[data-theme=light] .nav-item.active,[data-theme=light] .nav-item:hover{background:#ece6f9;color:#57417c}
+[data-theme=light] .nav-item.active>span,[data-theme=light] .nav-item b{color:#705498}
+[data-theme=light] .sidebar-note{background:linear-gradient(130deg,#eee6f9,#e6efdf);border-color:#ded5e8}
+[data-theme=light] .sidebar-note h3{color:#443757}
+[data-theme=light] .sidebar-note p,[data-theme=light] .sidebar-profile small,[data-theme=light] .breadcrumb,[data-theme=light] .breadcrumb span,[data-theme=light] .side-label{color:#696377}
+[data-theme=light] .panel,[data-theme=light] .task-card,[data-theme=light] .person,[data-theme=light] dialog{background:#fff;border-color:#dedee8;color:#36384b}
+[data-theme=light] .muted,[data-theme=light] .fine-print,[data-theme=light] .eyebrow,[data-theme=light] .page-heading p:last-child,[data-theme=light] .page-heading .eyebrow,[data-theme=light] .task-card p,[data-theme=light] footer{color:#69657a}
+[data-theme=light] .text-button,[data-theme=light] .header-actions #account-button{color:#694c8e}
+[data-theme=light] .button.light,[data-theme=light] .chip{background:#f0eaf9;border-color:#d8cbe9;color:#61477e}
+[data-theme=light] .chip.selected{background:#695089;color:#fff}
+[data-theme=light] .avatar,[data-theme=light] .avatar.small,[data-theme=light] .pill{background:#ece4f5;color:#654783;border-color:#ddd0ed}
+[data-theme=light] .demo-bar,[data-theme=light] .empty-state{background:#eeeef6;color:#635c75;border-color:#dddaea}
+[data-theme=light] .demo-bar b,[data-theme=light] .toggle{color:#544764}
+[data-theme=light] .game-summary{background:#e3dfe9;border-color:#e3dfe9}
+[data-theme=light] .game-summary>div,[data-theme=light] .game-summary>button{background:#fff}
+[data-theme=light] .game-summary strong{color:#373047}
+[data-theme=light] .game-summary small,[data-theme=light] .game-summary em{color:#6f657e}
+[data-theme=light] .summary-icon.violet{color:#70539d;background:#eee5fb}
+[data-theme=light] .summary-icon.mint{color:#267450;background:#e0f3e9}
+[data-theme=light] .summary-icon.gold{color:#93621a;background:#fff0cd}
+[data-theme=light] .summary-icon.pink{color:#a64265;background:#ffe4ec}
+[data-theme=light] .hero.player-hero{background:radial-gradient(ellipse at 90% 40%,#52735c,transparent 70%),#2c4c40;border-color:#3e6253}
+[data-theme=light] .hero h2,[data-theme=light] .hero h2 em{color:#f7f8ea}
+[data-theme=light] .hero p,[data-theme=light] .hero-label,[data-theme=light] .hero-player{color:#d9e4cb}
+[data-theme=light] input,[data-theme=light] select,[data-theme=light] textarea{background:#f8f7fc;color:#333348;border-color:#d7d1e1}
+[data-theme=light] .ranking.you{background:#edf3e4}
+[data-theme=light] .rank-points,[data-theme=light] .ranking strong{color:#48583c}
+[data-theme=light] .capture-status{color:#516843}
+[data-theme=light] .capture-error,[data-theme=light] .error-notice{color:#a32f45}
+[data-theme=light] .guild-quest{background:#faf9fd}
+[data-theme=light] .dialog-x{background:#eee8f5;color:#58416f}
+[data-theme=light] .task-card:hover{border-color:#a58bbf}
+[data-theme=light] .task-bottom,[data-theme=light] .task-meta,[data-theme=light] .guild-meta{color:#6b6079}
+[data-theme=light] .radar text{fill:#635575}
+@media(max-width:600px){.header-actions{gap:8px}.theme-switch{font-size:10px}.guild-actions{flex-wrap:wrap}}
+[data-theme=light] .stats-panel svg polygon:not([stroke-width]),[data-theme=light] .stats-panel svg line{stroke:#c9bfd9;fill:none}
+[data-theme=light] .stats-panel .chart-label{fill:#645773}
+[data-theme=light] .stats-panel .chart-value{fill:#704d97}
+[data-theme=light] .chart-caption{color:#6d607c}
+[data-theme=light] h1>span{color:#7c5a9d}
+[data-theme=light] .start-task,[data-theme=light] .reward,[data-theme=light] .task-icon{color:color-mix(in srgb,var(--accent) 45%,#211a38)}
+[data-theme=light] .quest-details,[data-theme=light] .match,[data-theme=light] .person p{color:#6b597e}
+[data-theme=light] .quest-details:hover{color:#423050}
+[data-theme=light] .achievement strong{color:#5c426d}
+[data-theme=light] .achievement.unlocked small{color:#496b30}
+[data-theme=light] .sidebar-note .xp-track{background:#d4c9e0}
+[data-theme=light] .cultural-recorder .capture-status{color:#50653c}
+[data-theme=light] .cultural-recorder .capture-error{color:#a32f45}
+[data-theme=light] .focus-ring{background:conic-gradient(#80985d var(--progress),#dfd5ea 0)}
+[data-theme=light] .focus-ring>div{background:#f4eff9}
+[data-theme=light] .focus-ring strong{color:#405b2c}
+[data-theme=light] .focus-ring span,[data-theme=light] .focus-ring small{color:#70617d}
+[data-theme=light] .session{background:linear-gradient(110deg,#eee5f6,#e4ecd9)}
+[data-theme=light] .session strong,[data-theme=light] .session h3{color:#524367}

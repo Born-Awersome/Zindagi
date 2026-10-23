@@ -9,9 +9,9 @@ export function distanceKm(a, b) {
 export const sampleGuilds = [
   { id: 'focus-club', name: 'The Focus Club', description: 'Deep work, shared goals, and a little friendly competition.', aspect: 'academics', members: ['AM', 'MS'], distance: 1.4 },
   { id: 'stride-squad', name: 'Stride Squad', description: 'Show up for your body and cheer each other on.', aspect: 'fitness', members: ['KR', 'AM'], distance: 3.5 },
-  { id: 'makers-circle', name: 'Makers Circle', description: 'Turn ambitious ideas into finished projects, together.', aspect: 'creativity', members: ['MS', 'KR'], distance: 8 },
+  { id: 'makers-circle', name: 'Cultural Circle', description: 'Share your music, dance, and cultural talents together.', aspect: 'cultural', members: ['MS', 'KR'], distance: 8 },
 ];
-const sampleStats = { AM: {academics:12,career:4,social:3,fitness:3,creativity:2}, MS: {academics:4,career:3,social:2,fitness:2,creativity:10}, KR: {academics:2,career:2,social:3,fitness:10,creativity:1} };
+const sampleStats = { AM: {academics:12,career:4,social:3,fitness:3,cultural:2}, MS: {academics:4,career:3,social:2,fitness:2,cultural:10}, KR: {academics:2,career:2,social:3,fitness:10,cultural:1} };
 export function guildRanks(guild, state, aspect = 'all') {
   const rows = guild.members.map(id => people.find(p => p.initials === id)).filter(Boolean).map(p => ({...p, you: false, score: aspect === 'all' ? p.points : sampleStats[p.initials][aspect] || 0}));
   if (state.guildIds.includes(guild.id)) rows.push({name: state.name, initials: state.name.slice(0, 2).toUpperCase(), color:'#e5eddc', you:true, score: aspect === 'all' ? Object.values(state.points).reduce((sum,n)=>sum+n,0) : state.points[aspect] || 0});

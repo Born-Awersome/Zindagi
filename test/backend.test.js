@@ -82,7 +82,7 @@ test('database survives restart without persisting location',async t=>{
 });
 
 test('hybrid recommendations handle cold start, similarity, distance and deterministic ranking',()=>{
- const points={academics:0,career:0,social:0,fitness:0,creativity:0},now=Date.now();
+ const points={academics:0,career:0,social:0,fitness:0,cultural:0},now=Date.now();
  const viewer={id:'a',interests:'academics',goal:'Learn programming',points,location:{latitude:0,longitude:0}};
  const candidates=[{id:'b',name:'B',interests:'academics',goal:'Learn programming',points,discoverable:true,updatedAt:now,location:{latitude:0,longitude:.01}},{id:'c',name:'C',interests:'fitness',goal:'Train',points,discoverable:true,updatedAt:now,location:{latitude:0,longitude:10}},{id:'private',discoverable:false}];
  const ranked=rankPeople(viewer,candidates,{now});assert.equal(ranked[0].id,'b');assert.ok(ranked.every(p=>Number.isFinite(p.score)));assert.equal(ranked.length,2);
