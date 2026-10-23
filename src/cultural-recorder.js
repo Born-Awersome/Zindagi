@@ -57,7 +57,8 @@ export function openCulturalRecorder({account, guildPoints=null, begin, discard,
   async function enable(){
     if(closed)return;
     error('');
-    if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia){phaseTo('error','Camera unavailable.');error('Open the site on localhost or HTTPS to record. A plain Wi-Fi IP address usually cannot access the camera.');return;}
+    if(!window.isSecureContext){phaseTo('error','This connection blocks camera access.');error('Your browser blocks recording over HTTP on another computer’s network address. Ask the host to share an HTTPS link (setup: docs/device-recording.md), then open that link directly in Chrome, Edge, Firefox, or Safari. Changing camera permissions alone will not fix HTTP.');return;}
+    if(!navigator.mediaDevices?.getUserMedia){phaseTo('error','Camera unavailable in this browser.');error('Open this HTTPS link directly in an up-to-date browser, outside an embedded chat browser. Check device camera and microphone permissions.');return;}
     if(!window.MediaRecorder||!supportedMime()){phaseTo('error','Recording is not supported by this browser.');error('Use an up-to-date Chrome, Edge, Firefox, or Safari browser with video recording support.');return;}
     phaseTo('requesting','Allow access to your camera and microphone in the browser prompt.');
     try {

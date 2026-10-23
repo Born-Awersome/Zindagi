@@ -128,3 +128,7 @@ Each member can earn each quest's reward once. Local rankings combine existing a
 Task definitions, submissions, and approved rewards persist in SQLite. The schema is installed automatically when the server starts; no manual SQL commands are needed.
 
 Implementation: `src/theme.js`, `src/light.css`, `src/guild-quests.js`, and `server/guild-tasks.js`. Tests include leader permissions, approval/rejection, repeat safety, isolated scoring, and Cultural guild submissions.
+
+## Fix camera access on other devices
+
+Phones and laptops opening an HTTP Wi-Fi address cannot use the camera because browsers require a secure context. Use a trusted HTTPS tunnel for a quick shared link, or configure the server's new HTTPS_CERT and HTTPS_KEY options for local HTTPS. See [phone/laptop recording setup](docs/device-recording.md) for Windows commands, certificate trust instructions, and troubleshooting. Merely changing http to https in the URL does not enable TLS.
