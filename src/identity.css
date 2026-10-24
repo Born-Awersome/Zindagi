@@ -194,3 +194,13 @@ html[data-theme] .nav-item.active>span{color:inherit}
 html[data-theme] .sidebar-note .xp-track{background:var(--line)}
 html[data-theme] .summary-icon:is(.violet,.mint,.gold,.pink){background:var(--soft);color:var(--brand-accent)}
 html[data-theme] .task-bottom>span{color:var(--subtle)}
+/* Connect requests explain readiness for both participants without exposing coordinates. */
+.connect-check{background:var(--raised);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0}
+.connect-check.is-ready{background:var(--soft);border-color:var(--brand-accent)}
+.connect-state{font-size:12px;font-weight:600;color:var(--brand-accent)}
+.connect-checklist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
+.connect-checklist>span{font-size:10px;color:var(--subtle);line-height:1.5}
+.connect-checklist b{display:block;font-size:11px;color:var(--ink);font-weight:500}
+.connect-checklist [data-ready=true] b{color:var(--brand-accent)}
+.connect-tools,.social-refresh{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:12px 0}
+.connect-tools button{min-height:40px;font-size:12px}#social-panel{scroll-margin-top:24px}

@@ -73,3 +73,11 @@ test('precise sharing on a private profile does not expose that person through n
  await a.c('/me','PATCH',{name:'Visible person',goal:'',interests:'academics',discoverable:true});assert.equal((await b.c('/guilds?nearby=true&radius=5'))[0].id,guild.id);
  await a.c('/me','PATCH',{name:'Private person',goal:'',interests:'academics',discoverable:false});assert.equal((await a.c('/social')).presence.sharing,false);
 });
+test('both Connect participants see actionable readiness without coordinates or automatic acceptance',async t=>{
+ const {register,fix}=await setup(t),a=await register('alice'),b=await register('bob');await a.c(`/social/connect/${b.id}/request`,'POST',{},201);
+ let outgoing=(await a.c('/social')).links[0];assert.equal(outgoing.proximity.code,'your_location');assert.deepEqual(outgoing.proximity.checks,{you:'waiting',them:'waiting'});
+ await fix(a.c,0);outgoing=(await a.c('/social')).links[0];assert.equal(outgoing.proximity.code,'their_location');assert.deepEqual(outgoing.proximity.checks,{you:'ready',them:'waiting'});
+ await fix(b.c,20,30);assert.equal((await a.c('/social')).links[0].proximity.code,'their_accuracy');assert.equal((await b.c('/social')).links[0].proximity.code,'your_accuracy');
+ await fix(b.c,20,2);for(const person of [a,b]){const link=(await person.c('/social')).links[0];assert.equal(link.proximity.ready,true);assert.equal(link.status,'pending');assert.deepEqual(link.proximity.checks,{you:'ready',them:'ready'});for(const field of ['latitude','longitude','distance','accuracy'])assert.ok(!(field in link.proximity));}
+ await a.c(`/social/connect/${b.id}/accept`,'POST',{},403);
+});

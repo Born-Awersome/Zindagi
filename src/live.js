@@ -1,14 +1,21 @@
-import { socialButtons, socialPanel, bindSocial, resetSocialSearch } from './social.js';
+import { createLocationSharing } from './location-sharing.js';
+import { socialButtons, socialPanel, socialGroups, connectStatus, bindSocial, resetSocialSearch } from './social.js';
 import { startLoading } from './interface.js';
 import { guildQuests, bindGuildQuests } from './guild-quests.js';
 import { categories } from './data.js';
 export const live={user:null,social:{links:[],presence:{sharing:false}},people:[],tasks:[],guilds:[],leaderboard:[],guildBoard:[],guildTasks:{},selected:null,aspect:'all',radius:10,nearby:false,locationMessage:'Location sharing is off.',nearbyGuildIds:[],loading:false,error:''};
-let hooks={},watch=null,locationGeneration=0,locationQueue=Promise.resolve(),lastLocationAt=0,locationHeartbeat=null,lastFix=0;
+let hooks={};
+let locationState={enabled:false,phase:'off',sharing:false};
+const locationSharing=createLocationSharing({geo:navigator.geolocation,send:body=>api('/location','PUT',body,{silent:true,signal:AbortSignal.timeout(12000)}),remove:()=>live.user?api('/location','DELETE',undefined,{silent:true,signal:AbortSignal.timeout(12000)}):Promise.resolve(),onChange:state=>{
+ const becameAvailable=!live.nearby&&state.sharing;locationState=state;live.nearby=state.sharing;live.loading=state.phase==='acquiring';live.locationMessage=state.message;if(!state.sharing)live.nearbyGuildIds=[];updateLocationStatus();
+ if(becameAvailable)refreshLive().then(()=>{if(locationState.enabled){if(!document.activeElement?.matches('input,select,textarea'))hooks.render();else updateSocialDOM();}});
+ if(live.user&&!document.hidden)syncSocial();
+}});
 let guildDraft={name:'',description:'',aspect:'academics'};
 export function configureLive(callbacks){hooks=callbacks;}
-export async function api(path,method='GET',body,{silent=false}={}){
+export async function api(path,method='GET',body,{silent=false,signal}={}){
   const finish=silent?()=>{}:startLoading();try {
-  const res=await fetch(`/api${path}`,{method,headers:{'Content-Type':'application/json','X-Zindagi':'1'},credentials:'same-origin',...(body===undefined?{}:{body:JSON.stringify(body)})});
+  const res=await fetch(`/api${path}`,{method,headers:{'Content-Type':'application/json','X-Zindagi':'1'},credentials:'same-origin',signal,...(body===undefined?{}:{body:JSON.stringify(body)})});
   const data=await res.json().catch(()=>({error:'The server returned an unexpected response.'}));
   if(!res.ok)throw Object.assign(new Error(data.error||'Request failed.'),{status:res.status});return data;
   }finally{finish();}
@@ -19,11 +26,11 @@ export async function refreshLive(){
   const id=live.user.id;
   const nearby=live.nearby?`?nearby=true&radius=${live.radius}`:'';
   try{
-    const [recommendations,guilds,leaderboard,nearbyGuilds,social]=await Promise.all([api(`/recommendations${nearby}`),api('/guilds'),api('/leaderboard'),live.nearby?api(`/guilds${nearby}`):Promise.resolve([]),api('/social')]);
+    const [recommendations,guilds,leaderboard,nearbyGuilds,social]=await Promise.all([api(`/recommendations${nearby}`).catch(error=>{if(error.status===409&&nearby)return api('/recommendations');throw error;}),api('/guilds'),api('/leaderboard'),live.nearby?api(`/guilds${nearby}`).catch(error=>{if(error.status===409)return [];throw error;}):Promise.resolve([]),api('/social')]);
     if(live.user?.id!==id)return;
     live.social=social;live.nearbyGuildIds=nearbyGuilds.map(g=>g.id);live.people=recommendations.people;live.tasks=recommendations.tasks;live.guilds=guilds;live.leaderboard=leaderboard;live.error='';
     if(live.selected&&guilds.some(g=>g.id===live.selected&&g.joined)){const selected=live.selected;const [board,tasks]=await Promise.all([api(`/guilds/${selected}/leaderboard?aspect=${live.aspect}`),api(`/guilds/${selected}/tasks`)]);if(live.user?.id!==id||live.selected!==selected)return;live.guildBoard=board;live.guildTasks=tasks;}else {live.selected=null;live.guildBoard=[];}
-  }catch(error){live.error=error.message;live.people=[];if(error.status===409&&live.nearby)live.nearby=false;}
+  }catch(error){live.error=error.message;live.people=[];}
 }
 export async function action(fn){try{await fn();}catch(error){hooks.toast(error.message);}}
 export function authDialog(){return `<dialog id="auth-dialog"><h2>Your next chapter starts here.</h2><p>Create an account to save progress across devices, discover people, and compete in shared guilds.</p><form id="auth-form"><label>Action<select name="mode" id="auth-mode"><option value="login">Sign in</option><option value="register">Create account</option></select></label><label id="register-name" hidden>Display name<input name="name" maxlength="32" autocomplete="nickname"></label><label>Username<input name="username" required minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" autocomplete="username"></label><label>Password<input name="password" type="password" required minlength="10" maxlength="128" autocomplete="current-password"></label><p id="auth-error" role="alert"></p><button class="button" type="submit">Continue</button><button class="text-button" id="auth-close" type="button">Keep exploring the demo</button></form></dialog>`;}
@@ -43,47 +50,48 @@ export function liveGuildView(escape){
   const selected=live.guilds.find(g=>g.id===live.selected);
   return `${locationPanel(escape)}<div class="section-heading"><h2>People near you</h2><label class="radius-label">Radius<select id="live-radius">${[5,10,25,50].map(r=>`<option value="${r}" ${r===live.radius?'selected':''}>${r} km</option>`).join('')}</select></label></div>${live.nearby?personCards(escape):'<div class="empty-state">Enable precise location to find nearby discoverable people. Your profile discovery setting controls whether others can discover you.</div>'}${live.error?`<p class="error-notice">${escape(live.error)}</p>`:''}<div class="section-heading"><div><p class="eyebrow">YOUR SHARED COMPETITION GROUPS</p><h2>Discover guilds</h2></div><button class="text-button" id="refresh-live">Refresh ›</button></div><p class="muted recommendation-note">Guilds with nearby members and a matching focus are listed first. Joining shares your display name and scores with other members.</p><div class="guild-grid">${[...live.guilds].sort((a,b)=>(Number(live.nearbyGuildIds.includes(b.id))*2+Number(b.aspect===live.user.interests))-(Number(live.nearbyGuildIds.includes(a.id))*2+Number(a.aspect===live.user.interests))).map(card).join('')||'<div class="empty-state">No guilds yet. Start your own below.</div>'}</div>${selected?`<section class="panel guild-board" id="guild-board"><div class="section-heading"><h2>${escape(selected.name)}</h2><span class="pill">All-time</span></div><p class="muted">Only members of this guild. Your all-time aspect points plus approved rewards from this guild. Custom guild rewards never change the global leaderboard. Equal scores share a rank.</p><div class="filters board-filters">${[{id:'all',name:'All aspects'},...categories].map(c=>`<button class="chip ${c.id===live.aspect?'selected':''}" data-live-aspect="${c.id}">${c.name}</button>`).join('')}</div>${boardView(live.guildBoard,escape)}</section>${guildQuests(live.guildTasks,escape)}`:''}<section class="panel create-guild"><p class="eyebrow">START YOUR LOCAL COMMUNITY</p><h2>Create a guild</h2><form id="live-guild-form"><label>Guild name<input name="name" required minlength="3" maxlength="40" value="${escape(guildDraft.name)}"></label><label>Description<input name="description" maxlength="140" value="${escape(guildDraft.description)}"></label><label>Main focus<select name="aspect">${categories.map(c=>`<option value="${c.id}" ${guildDraft.aspect===c.id?'selected':''}>${c.name}</option>`).join('')}</select></label><button class="button">Create shared guild +</button></form></section>`;
 }
-export function disableLiveLocation(){
-  locationGeneration++;clearInterval(locationHeartbeat);locationHeartbeat=null;lastFix=0;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;live.nearby=false;live.nearbyGuildIds=[];live.loading=false;live.locationMessage='Location sharing is off.';
-  if(!live.user)return Promise.resolve();
-  // Serialize deletion after any in-flight update so stopping wins races.
-  locationQueue=locationQueue.catch(()=>{}).then(()=>api('/location','DELETE').catch(()=>{live.locationMessage='Could not confirm removal. Server location expires within 30 seconds.';}));return locationQueue;
-}
-export function locationPanel(escape){return `<section class="panel location-panel"><div><p class="eyebrow">MEET NEARBY. CONNECT BY CHOICE.</p><h2>Precise location</h2><p class="muted">Enable this only when you want to find nearby people or accept Connect. Your precise coordinates and GPS accuracy go to this server, stay in memory for at most 30 seconds, and are never shown to other people. Sharing stops when you hide the app, leave Community/Guilds, sign out, or press Stop.</p><p class="fine-print">Choose Precise location in your phone’s permission settings. The app requests high accuracy but cannot override your device settings. GPS may be too inaccurate indoors for the 5–40 metre check.</p></div><div class="location-controls"><button class="button" id="live-locate" ${live.loading?'disabled':''}>${live.loading?'Waiting for GPS…':live.nearby?'Refresh precise location':'Enable precise location'}</button><button class="button light" id="live-stop-location">Stop sharing</button></div><p class="location-status" role="status">${escape(live.locationMessage)}</p></section>`;}
-function updateLocationStatus(){document.querySelectorAll('.location-status').forEach(el=>el.textContent=live.locationMessage);}
-async function syncSocial(){
+export function disableLiveLocation(){return locationSharing.stop();}
+export function locationPanel(escape){return `<section class="panel location-panel"><div><p class="eyebrow">MEET NEARBY. CONNECT BY CHOICE.</p><h2>Precise location</h2><p class="muted">Enable this only when you want to find nearby people or accept Connect. Your precise coordinates and GPS accuracy go to this server, stay in memory for at most 30 seconds, and are never shown to other people. Sharing pauses when you hide the app and resumes when you return here. It stops when you leave Community/Guilds, sign out, or press Stop. Temporary GPS or network failures retry automatically.</p><p class="fine-print">Choose Precise location in your phone’s permission settings. The app requests high accuracy but cannot override your device settings. GPS may be too inaccurate indoors for the 5–40 metre check.</p></div><div class="location-controls"><button class="button" id="live-locate" >${locationState.enabled?'Retry GPS now':'Enable precise location'}</button><button class="button light" id="live-stop-location">Stop sharing</button></div><p class="location-status" role="status">${escape(live.locationMessage)}</p></section>`;}
+function updateLocationStatus(){const button=document.querySelector('#live-locate');if(button){button.disabled=false;button.textContent=locationState.enabled?'Retry GPS now':'Enable precise location';}document.querySelectorAll('.location-status').forEach(el=>el.textContent=live.locationMessage);}
+let syncingSocial=null;
+async function syncSocial(report=false){
  if(!live.user||document.hidden)return;const id=live.user.id;
- try{const data=await api('/social','GET',undefined,{silent:true});if(live.user?.id!==id)return;live.social=data;updateSocialDOM();}catch{/* Explicit refresh and actions still report failures. */}
+ if(syncingSocial){await syncingSocial;if(report)await syncSocial(true);return;}
+ syncingSocial=(async()=>{try{
+  const data=await api('/social','GET',undefined,{silent:true,signal:AbortSignal.timeout(12000)});if(live.user?.id!==id)return;live.social=data;updateSocialDOM();
+  const status=document.querySelector('#social-sync-status');if(status)status.textContent=report?'Requests checked just now.':'Updates are live while this page is visible.';
+ }catch(error){if(live.user?.id!==id)return;const status=document.querySelector('#social-sync-status');if(status)status.textContent='Could not refresh requests. Check your connection; we’ll retry automatically.';if(report)hooks.toast(error.message);}finally{syncingSocial=null;}})();
+ await syncingSocial;
 }
 function updateSocialDOM(){
- const panel=document.querySelector('#social-panel');if(panel&&!panel.contains(document.activeElement))panel.outerHTML=socialPanel(live.social,live.user,escapeSocial);
+ const groups=document.querySelector('.social-groups');
+ if(groups){
+  const rows=[...groups.querySelectorAll('[data-link]')];
+  const before=rows.map(r=>`${r.dataset.link}:${r.dataset.status}`).sort().join('|');
+  const after=live.social.links.map(l=>`${l.kind}:${l.userId}:${l.status}`).sort().join('|');
+  if(before!==after){
+   const focused=groups.contains(document.activeElement)?document.activeElement:null;
+   const key=focused?.dataset;
+   groups.innerHTML=socialGroups(live.social,escapeSocial);
+   if(focused){const replacement=[...groups.querySelectorAll('button')].find(b=>key.socialAction&&b.dataset.socialAction===key.socialAction&&b.dataset.kind===key.kind&&b.dataset.target===key.target);(replacement||document.querySelector('#social-panel h2'))?.focus({preventScroll:true});}
+  }else for(const row of rows){
+   const link=live.social.links.find(l=>`${l.kind}:${l.userId}`===row.dataset.link);
+   const status=row.querySelector('.connect-status');if(status)status.innerHTML=connectStatus(link,escapeSocial);
+   const accept=row.querySelector('[data-social-action="accept"][data-kind="connect"]');if(accept&&!accept.dataset.busy)accept.disabled=!link.proximity?.ready;
+  }
+ }
  document.querySelectorAll('.social-actions[data-person]').forEach(el=>{if(!el.contains(document.activeElement))el.outerHTML=socialButtons(el.dataset.person,live.social);});bindSocialControls();
 }
 const escapeSocial=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function bindSocialControls(){
- bindSocial({api,action,refresh:refreshLive,render:hooks.render,toast:hooks.toast});
+ bindSocial({api,action,refresh:refreshLive,render:hooks.render,toast:hooks.toast,review:()=>hooks.reviewRequests(),locate,check:report=>syncSocial(report!==false)});
  document.querySelectorAll('[data-block]').forEach(el=>el.onclick=()=>action(async()=>{await api(`/blocks/${el.dataset.block}`,'POST');await refreshLive();hooks.render();}));
 }
-function locate(){
- action(async()=>{await disableLiveLocation();if(!live.user)return;if(!navigator.geolocation||!window.isSecureContext)throw new Error('Location requires HTTPS or localhost.');const gen=locationGeneration;live.loading=true;live.locationMessage='Allow precise location in the browser and device permission prompt.';hooks.render();lastLocationAt=0;
-  const options={enableHighAccuracy:true,maximumAge:0,timeout:15000};
-  const onPosition=p=>{
-   if(gen!==locationGeneration||document.hidden||Date.now()-lastLocationAt<5000)return;lastLocationAt=Date.now();
-   locationQueue=locationQueue.catch(()=>{}).then(async()=>{
-    if(gen!==locationGeneration||document.hidden)return;
-    const first=!live.nearby;await api('/location','PUT',{latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,capturedAt:p.timestamp},{silent:true});
-    if(gen!==locationGeneration)return;lastFix=Date.now();live.loading=false;live.nearby=true;live.locationMessage=`Precise sharing active · reported accuracy ±${Math.ceil(p.coords.accuracy)} m. ${p.coords.accuracy>10?'GPS is too imprecise for Connect right now.':'Connect also checks both readings and distance when accepted.'}`;
-    if(first){await refreshLive();if(gen===locationGeneration)hooks.render();}else{updateLocationStatus();await syncSocial();}
-   }).catch(error=>{if(gen!==locationGeneration)return;if(error.status===400||error.status===409){live.loading=false;live.locationMessage=error.message;updateLocationStatus();return;}disableLiveLocation();live.locationMessage=error.message;hooks.render();});
-  };
-  const onError=error=>{if(gen!==locationGeneration)return;disableLiveLocation();live.locationMessage=error.code===1?'Location permission denied. Enable Precise location in your browser/device settings; Friends still works without location.':'A fresh GPS fix is unavailable. Try outdoors and enable precise location again.';hooks.render();};
-  watch=navigator.geolocation.watchPosition(onPosition,onError,options);
-  locationHeartbeat=setInterval(()=>{if(gen!==locationGeneration||document.hidden)return;if(lastFix&&Date.now()-lastFix>=30000){live.locationMessage='Waiting for a fresh GPS reading. Connect acceptance is unavailable until both locations are fresh.';updateLocationStatus();}navigator.geolocation.getCurrentPosition(onPosition,onError,options);},10000);
- });
-}
-setInterval(()=>{if(live.user&&!document.hidden&&['Community','Guilds'].includes(hooks.getPage?.()))syncSocial();},8000);
-window.addEventListener('pagehide',()=>{locationGeneration++;if(watch!==null)navigator.geolocation?.clearWatch(watch);watch=null;clearInterval(locationHeartbeat);locationHeartbeat=null;live.nearby=false;live.loading=false;live.locationMessage='Location sharing is off.';if(live.user)fetch('/api/location',{method:'DELETE',headers:{'X-Zindagi':'1'},keepalive:true}).catch(()=>{});});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&watch!==null){disableLiveLocation();hooks.render();}});
+function locate(){if(!live.user)return;if(!window.isSecureContext){hooks.toast('Location requires HTTPS or localhost. Open the HTTPS address on your phone.');return;}locationSharing.start();}
+setInterval(()=>{if(live.user&&!document.hidden&&['Community','Guilds'].includes(hooks.getPage?.()))syncSocial();},4000);
+window.addEventListener('pagehide',()=>{locationSharing.stop();if(live.user)fetch('/api/location',{method:'DELETE',headers:{'X-Zindagi':'1'},keepalive:true}).catch(()=>{});});
+document.addEventListener('visibilitychange',()=>locationSharing.visibility());
+window.addEventListener('online',()=>{if(locationState.enabled)locationSharing.retry();});
 export function bindLive(){
   bindAuth();if(!live.user)return;
   bindGuildQuests({id:live.selected,api,action,data:live.guildTasks,toast:hooks.toast,refresh:async()=>{await refreshLive();hooks.render();}});

@@ -7,8 +7,9 @@ let position = null, mode = 'off', watchId = null, generation = 0;
 let locationError = '', radius = 5, selectedGuild = null, boardAspect = 'all';
 let formDraft = { name:'', description:'', aspect:'academics', members:[] };
 let refresh = () => {};
+let resumeLocation=false;
 export function stopLocation() {
-  generation++;
+  resumeLocation=false;generation++;
   if (watchId !== null) navigator.geolocation?.clearWatch(watchId);
   watchId = null;
   position = null;
@@ -31,13 +32,13 @@ function trackLocation() {
     if(changed) refresh();
   }, error => {
     if (request !== generation) return;
-    stopLocation();
-    locationError = error.code === 1 ? 'Location permission was denied. Allow location in your browser settings and try again, or use the demo area.' : error.code === 3 ? 'Location timed out. Try again or explore the demo area.' : 'Your location is unavailable. Try again or explore the demo area.';
+    if(error.code===1)stopLocation();
+    locationError = error.code === 1 ? 'Location permission was denied. Allow location in your browser settings and try again, or use the demo area.' : 'GPS is temporarily unavailable. Tracking is still enabled and waiting for a fresh reading. Try outdoors.';
     refresh();
   }, {enableHighAccuracy:true, maximumAge:0, timeout:15000});
 }
 window.addEventListener('pagehide', stopLocation);
-document.addEventListener('visibilitychange',()=>{ if(document.hidden && (mode==='device'||mode==='loading')) {stopLocation();refresh();} });
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(mode==='device'||mode==='loading')){stopLocation();resumeLocation=true;locationError='Location paused. Return to resume GPS.';refresh();}else if(!document.hidden&&resumeLocation){resumeLocation=false;trackLocation();}});
 
 export function guildView(state, escape) {
   const active = mode === 'demo' || mode === 'device';
@@ -46,7 +47,7 @@ export function guildView(state, escape) {
   const joined = allGuilds.filter(g=>state.guildIds.includes(g.id));
   const memberOptions = people.map(p=>`<label class="member-option"><input type="checkbox" name="members" value="${p.initials}" ${formDraft.members.includes(p.initials)?'checked':''}>${p.name} <span>Demo</span></label>`).join('');
   const card = g => `<article class="panel guild-card"><div class="guild-card-top"><span class="guild-emblem">⚑</span><span class="pill">${g.distance === undefined?'Your guild':`Demo · ~${g.distance} km`}</span></div><h3>${escape(g.name)}</h3><p class="muted">${escape(g.description)}</p><div class="guild-meta">${categories.find(c=>c.id===g.aspect)?.name || 'All aspects'} · ${g.members.length + Number(state.guildIds.includes(g.id))} members</div><div class="guild-actions"><button class="button ${state.guildIds.includes(g.id)?'light':''}" data-join-guild="${escape(g.id)}">${state.guildIds.includes(g.id)?'Leave guild':'Join guild +'}</button><button class="text-button" data-open-guild="${escape(g.id)}">Leaderboard ›</button></div></article>`;
-  return `<section class="panel location-panel"><div><p class="eyebrow">FIND YOUR LOCAL CIRCLE</p><h2>Big goals. Nearby company.</h2><p class="muted">Use your location while this page is open, or explore a demo area. Coordinates stay in memory on this device and are never shared or saved.</p></div><div class="location-controls"><button class="button" id="locate" ${mode==='loading'?'disabled':''}>${mode==='loading'?'Finding your location…':mode==='device'?'Refresh my location':'Use my location'}</button><button class="button light" id="demo-location">Explore demo area</button>${mode!=='off'?'<button class="text-button" id="stop-location">Turn location off</button>':''}</div><p class="location-status" role="status">${locationError || (mode==='device'?'● Location active · updates while this page is visible':mode==='demo'?'◎ Demo area active · no device location used':mode==='loading'?'Waiting for your browser’s location permission…':'Location is off. You choose when to enable it.')}</p></section>
+  return `<section class="panel location-panel"><div><p class="eyebrow">FIND YOUR LOCAL COMMUNITY</p><h2>Big goals. Nearby company.</h2><p class="muted">Use your location while this page is open, or explore a demo area. Coordinates stay in memory on this device and are never shared or saved.</p></div><div class="location-controls"><button class="button" id="locate" ${mode==='loading'?'disabled':''}>${mode==='loading'?'Finding your location…':mode==='device'?'Refresh my location':'Use my location'}</button><button class="button light" id="demo-location">Explore demo area</button>${mode!=='off'?'<button class="text-button" id="stop-location">Turn location off</button>':''}</div><p class="location-status" role="status">${locationError || (mode==='device'?'● Location active · updates while this page is visible':mode==='demo'?'◎ Demo area active · no device location used':mode==='loading'?'Waiting for your browser’s location permission…':'Location is off. You choose when to enable it.')}</p></section>
   <div class="guild-notice"><strong>Prototype community</strong> · People, guild locations, and distances below are simulated examples, not actual nearby users. No coordinates or invitations are sent to anyone.</div>
   <div class="section-heading"><div><p class="eyebrow">YOUR NEIGHBOURHOOD, YOUR TEAM</p><h2>People near you</h2></div><label class="radius-label">Search radius<select id="nearby-radius"><option value="1" ${radius===1?'selected':''}>1 km</option><option value="5" ${radius===5?'selected':''}>5 km</option><option value="10" ${radius===10?'selected':''}>10 km</option><option value="25" ${radius===25?'selected':''}>25 km</option></select></label></div>
   ${active?`<div class="people-grid">${people.map((p,i)=>({...p,distance:[.8,2.5,7][i]})).filter(p=>p.distance<=radius).map(p=>`<article class="person"><div class="avatar" style="background:${p.color}">${p.initials}</div><h3>${p.name}</h3><p>${p.role}</p><span class="match">Demo distance · ~${p.distance} km · ${categories.find(c=>c.id===p.category).name}</span><button class="button light" data-social-signin>Sign in for Friends & Connect</button></article>`).join('')}</div>`:'<div class="empty-state">Enable location or choose the demo area to explore nearby discovery.</div>'}

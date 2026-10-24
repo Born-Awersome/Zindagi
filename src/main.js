@@ -24,7 +24,7 @@ let focusMode=false, reward=null, detail=null, badge=null;
 let page = 'Dashboard', filter = 'all', serverOffset = 0, completing = false, retryAfter = 0;
 function acceptServer(data) { serverOffset = data.serverNow - Date.now(); state = {...initialState(), ...data, demo:false}; }
 function restoreGuest() { state=initialState();try { const saved=JSON.parse(localStorage.getItem(key));if(saved)state=migrateLocalState(saved); }catch{} serverOffset=0;render(); }
-configureLive({getPage:()=>page,accept:acceptServer, logout:restoreGuest, render:()=>render(), toast:message=>toast(message)});
+configureLive({reviewRequests:()=>{page="Community";render();document.querySelector("#social-panel")?.scrollIntoView({block:"start"});document.querySelector("#social-panel h2")?.focus({preventScroll:true});},getPage:()=>page,accept:acceptServer, logout:restoreGuest, render:()=>render(), toast:message=>toast(message)});
 const escape = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const total = () => Object.values(state.points).reduce((a,b) => a+b,0);
 function save() { if(live.user)return; try { localStorage.setItem(key, JSON.stringify(state)); } catch { toast('Browser storage is unavailable. Progress will last for this visit only.'); } }
