@@ -3,20 +3,21 @@ import { MAX_RECORDING_BYTES, MIN_RECORDING_BYTES, MAX_RECORDING_MS } from './re
 let activeRecorder = null;
 
 // This dialog lives outside #app so a dashboard refresh cannot detach a live camera.
-export function openCulturalRecorder({account, guildPoints=null, begin, discard, clearPending, submit, completed}) {
+export function openCulturalRecorder({account, guildPoints=null, kind="video", moment=false, begin, discard, clearPending, submit, completed}) {
   if (activeRecorder) return;
   const dialog = document.createElement('dialog');
   dialog.className = 'cultural-recorder';
   dialog.setAttribute('aria-labelledby','cultural-title');
   dialog.innerHTML = `<button class="dialog-x" data-close aria-label="Discard and close recording">×</button>
-    <p class="eyebrow">CULTURAL QUEST · ${guildPoints===null?"+1 POINT":`+${guildPoints} GUILD PTS AFTER APPROVAL`}</p><h2 id="cultural-title">Your talent. Your stage.</h2>
-    <p>Sing a song, play guitar, dance, or show another cultural talent. Capture a fresh performance here—existing files cannot be selected.</p>
-    <div class="capture-stage"><video data-video playsinline aria-label="Live camera preview or recorded performance"></video><div class="capture-placeholder" data-placeholder><span>♫</span><strong>Make this moment yours</strong><small>Camera + microphone · record up to 60 seconds</small></div><span class="capture-indicator" data-indicator hidden><i></i> RECORDING LIVE</span></div>
+    <p class="eyebrow">${moment?"CAPTURE A VIEW-ONCE MOMENT":`CULTURAL QUEST · ${guildPoints===null?"+1 POINT":`+${guildPoints} GUILD PTS AFTER APPROVAL`}`}</p><h2 id="cultural-title">Your talent. Your stage.</h2>
+    <p>${moment?"Share a moment of your progress. Public moments do not award points.":"Sing a song, play guitar, dance, or show another cultural talent."} Capture it here—existing files cannot be selected.</p>
+    <div class="capture-stage"><video data-video playsinline aria-label="Live camera preview or recorded performance"></video><img data-photo hidden alt="Your captured photo"><div class="capture-placeholder" data-placeholder><span>♫</span><strong>Make this moment yours</strong><small>${kind==="photo"?"Camera · take a fresh photo":"Camera + microphone · record up to 60 seconds"}</small></div><span class="capture-indicator" data-indicator hidden><i></i> RECORDING LIVE</span></div>
     <p class="capture-status" data-status role="status">Your camera and microphone are off.</p>
     <p class="capture-error" data-error role="alert"></p>
-    <div class="capture-actions"><button class="button" data-enable>Enable camera & microphone</button><button class="button" data-record hidden>Start recording</button><button class="button capture-stop" data-stop hidden>Stop recording</button><button class="button light" data-retake hidden>Retake</button><button class="button" data-submit hidden>${guildPoints===null?"Submit performance · +1 point":"Submit for leader approval"}</button></div>
+    <div class="capture-actions"><button class="button" data-enable>${kind==="photo"?"Enable camera":"Enable camera & microphone"}</button><button class="button" data-record hidden>${kind==="photo"?"Take photo":"Start recording"}</button><button class="button capture-stop" data-stop hidden>Stop recording</button><button class="button light" data-retake hidden>Retake</button><button class="button" data-submit hidden>${moment?"Publish view-once moment":guildPoints===null?"Submit performance · +1 point":"Submit for leader approval"}</button></div>
+    ${account?`<label class="public-consent"><input type="checkbox" data-public> Make this capture public to signed-in members (one opening per account)</label><p class="fine-print">Public captures are stored on the server until you remove them in Community. Viewers can still screenshot or record their screen.</p>`:""}
     <button class="text-button" data-recover hidden>Discard an unfinished recording</button><button class="text-button" data-discard>Discard & close</button>
-    <p class="fine-print">${account?'After you choose Submit, your captured clip is sent to this server for processing, then discarded. Only a submission receipt is saved. Guild task rewards need leader approval. It is not posted to other people.':'Local demo: the clip stays in memory in this tab and is discarded when you finish or close. The point stays in this browser.'} Camera and microphone stop when you finish recording, leave this tab, or close this dialog.</p>`;
+    <p class="fine-print">${account?'After submission, private quest clips are discarded; public captures are saved for the feed. Guild rewards still need leader approval. Nothing is published without your choice.':'Local demo: the clip stays in memory in this tab and is discarded when you finish or close. The point stays in this browser.'} Camera and microphone stop when you finish recording, leave this tab, or close this dialog.</p>`;
   document.body.append(dialog);
   const el = name => dialog.querySelector(`[data-${name}]`);
   const video = el('video');
@@ -28,7 +29,8 @@ export function openCulturalRecorder({account, guildPoints=null, begin, discard,
     phase=next;
     if(message)el('status').textContent=message;
     el('enable').hidden=!['intro','error'].includes(next);
-    el('enable').textContent=next==='error'?'Try camera again':'Enable camera & microphone';
+    el('enable').textContent=next==='error'?'Try camera again':kind==='photo'?'Enable camera':'Enable camera & microphone';
+    if(el('public'))el('public').disabled=next==='submitting';
     el('record').hidden=next!=='ready';
     el('stop').hidden=next!=='recording';
     el('retake').hidden=next!=='review';
@@ -37,7 +39,7 @@ export function openCulturalRecorder({account, guildPoints=null, begin, discard,
     el('close').disabled=next==='submitting';el('discard').disabled=next==='submitting';
   }
   function release(){clearTimeout(stopTimeout);stream?.getTracks().forEach(track=>track.stop());stream=null;}
-  function clearClip(){blob=null;chunks=[];bytes=0;if(url)URL.revokeObjectURL(url);url=null;video.pause();video.srcObject=null;video.removeAttribute('src');video.controls=false;el('placeholder').hidden=false;}
+  function clearClip(){blob=null;chunks=[];bytes=0;if(url)URL.revokeObjectURL(url);url=null;video.pause();video.srcObject=null;video.removeAttribute('src');video.controls=false;el('placeholder').hidden=false;el('photo').hidden=true;el('photo').removeAttribute('src');video.hidden=false;}
   async function cancelTicket(){const id=ticket;if(id)await discard(id);if(ticket===id)ticket=null;}
   async function close(){
     if(closed||phase==='submitting')return;
@@ -59,15 +61,15 @@ export function openCulturalRecorder({account, guildPoints=null, begin, discard,
     error('');
     if(!window.isSecureContext){phaseTo('error','This connection blocks camera access.');error('Your browser blocks recording over HTTP on another computer’s network address. Ask the host to share an HTTPS link (setup: docs/device-recording.md), then open that link directly in Chrome, Edge, Firefox, or Safari. Changing camera permissions alone will not fix HTTP.');return;}
     if(!navigator.mediaDevices?.getUserMedia){phaseTo('error','Camera unavailable in this browser.');error('Open this HTTPS link directly in an up-to-date browser, outside an embedded chat browser. Check device camera and microphone permissions.');return;}
-    if(!window.MediaRecorder||!supportedMime()){phaseTo('error','Recording is not supported by this browser.');error('Use an up-to-date Chrome, Edge, Firefox, or Safari browser with video recording support.');return;}
+    if(kind!=="photo"&&(!window.MediaRecorder||!supportedMime())){phaseTo('error','Recording is not supported by this browser.');error('Use an up-to-date Chrome, Edge, Firefox, or Safari browser with video recording support.');return;}
     phaseTo('requesting','Allow access to your camera and microphone in the browser prompt.');
     try {
-      const captured=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:24,max:30},facingMode:'user'},audio:true});
+      const captured=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:24,max:30},facingMode:'user'},audio:kind!=='photo'});
       if(closed||document.hidden||phase!=='requesting'){captured.getTracks().forEach(t=>t.stop());return;}
       stream=captured;clearClip();video.srcObject=stream;video.muted=true;video.controls=false;el('placeholder').hidden=true;
       await video.play().catch(()=>{});
       for(const track of stream.getTracks())track.onended=()=>{if(phase==='recording')stopRecording('Camera or microphone disconnected. Review the captured portion or retake.');else if(phase==='ready'){release();phaseTo('error','Camera or microphone disconnected.');}};
-      phaseTo('ready','Camera and microphone ready. Nothing is being recorded yet.');el('record').focus();
+      phaseTo('ready',kind==='photo'?'Camera ready. Take your photo when ready.':'Camera and microphone ready. Nothing is being recorded yet.');el('record').focus();
     } catch(e) {
       if(closed)return;release();phaseTo('error','Camera and microphone are off.');
       error(e.name==='NotAllowedError'?'Permission was denied. Allow both camera and microphone in your browser settings, then try again.':e.name==='NotFoundError'?'A camera and microphone are required. Connect them and try again.':e.name==='NotReadableError'?'The camera or microphone may be in use by another app. Close that app and retry.':'Could not start the camera. Check your device and browser permissions.');
@@ -87,7 +89,16 @@ export function openCulturalRecorder({account, guildPoints=null, begin, discard,
       if(ticket)await cancelTicket();
       ticket=await begin();
       if(closed||document.hidden||phase!=='starting'){await cancelTicket();return;}
-      if(!stream?.getVideoTracks().some(t=>t.readyState==='live')||!stream?.getAudioTracks().some(t=>t.readyState==='live'))throw new Error('Camera or microphone stopped. Enable them again.');
+      if(!stream?.getVideoTracks().some(t=>t.readyState==='live')||(kind!=='photo'&&!stream?.getAudioTracks().some(t=>t.readyState==='live')))throw new Error('Camera or microphone stopped. Enable them again.');
+      if(kind==='photo'){
+        const canvas=document.createElement('canvas');canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+        if(!canvas.width||!canvas.height)throw new Error('Camera is not ready. Please retry.');
+        canvas.getContext('2d').drawImage(video,0,0);const captured=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.9));
+        release();if(closed||phase!=='starting')return;
+        if(!captured||captured.size<MIN_RECORDING_BYTES)throw new Error('Could not capture this photo. Try again.');
+        blob=captured;url=URL.createObjectURL(blob);video.srcObject=null;video.hidden=true;el('photo').src=url;el('photo').hidden=false;el('placeholder').hidden=true;
+        phaseTo('review','Photo captured. Review, retake, or publish.');el('submit').focus();return;
+      }
       chunks=[];bytes=0;invalid=false;
       recorder=new MediaRecorder(stream,{mimeType:supportedMime(),videoBitsPerSecond:1000000,audioBitsPerSecond:64000});
       recorder.ondataavailable=e=>{if(closed)return;if(e.data.size){bytes+=e.data.size;if(bytes>MAX_RECORDING_BYTES){invalid=true;stopRecording();}else chunks.push(e.data);}};
@@ -109,8 +120,9 @@ export function openCulturalRecorder({account, guildPoints=null, begin, discard,
   el('retake').onclick=async()=>{if(phase!=='review')return;phaseTo('processing','Discarding this take…');try{await cancelTicket();clearClip();await enable();}catch(e){phaseTo('review','Could not discard the session. Please retry.');error(e.message);}};
   el('submit').onclick=async()=>{
     if(phase!=='review'||!blob)return;
+    if(moment&&!el('public')?.checked){error('Choose Make this capture public before publishing.');return;}
     phaseTo('submitting','Submitting your captured performance…');error('');video.pause();
-    try {const receipt={id:operationId,bytes:blob.size};const result=await submit(blob,ticket);ticket=null;phase='finished';await close();await completed(result,receipt);}
+    try {const receipt={id:operationId,bytes:blob.size};const result=await submit(blob,ticket,Boolean(el('public')?.checked));ticket=null;phase='finished';await close();await completed(result,receipt);}
     catch(e){if(closed)return;phaseTo('review','Submission failed. Your take is still available here.');error(e.message||'Check your connection and retry.');}
   };
   el('close').onclick=close;el('discard').onclick=close;

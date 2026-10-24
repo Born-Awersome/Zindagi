@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import { mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { categories, tasks } from '../src/data.js';
+import { installMomentRoutes } from './moments.js';
 import { installGuildTaskRoutes } from './guild-tasks.js';
 import { installRecordingRoutes, migrateCultural } from './recordings.js';
 import { rankPeople, rankTasks, distanceKm } from './recommendations.js';
@@ -68,7 +69,8 @@ export function createApp({filename=process.env.DATABASE_PATH||'data/zindagi.sql
     res.json(state(req.user));
   });
   installGuildTaskRoutes({app,db,now});
-  installRecordingRoutes({app,db,now,state});
+  const publishMoment=installMomentRoutes({app,db,now});
+  installRecordingRoutes({app,db,now,state,publishMoment});
   app.put('/api/location',(req,res)=>{const {latitude,longitude}=req.body;if(typeof latitude!=='number'||!Number.isFinite(latitude)||latitude < -90||latitude>90||typeof longitude!=='number'||!Number.isFinite(longitude)||longitude < -180||longitude>180)throw fail(400,'Invalid coordinates.');if(!publicUser(req.user).discoverable)throw fail(409,'Enable discovery in your profile before sharing an approximate location.');for(const id of locations.keys())location(id);locations.set(req.user,{latitude:Math.round(latitude*100)/100,longitude:Math.round(longitude*100)/100,expires:now()+15*60000});res.json({ok:true,expiresInSeconds:900});});
   app.delete('/api/location',(req,res)=>{locations.delete(req.user);res.json({ok:true});});
   function blocked(a,b){return !!get('SELECT 1 FROM blocks WHERE (user_id=? AND target=?) OR (user_id=? AND target=?)',a,b,b,a);}

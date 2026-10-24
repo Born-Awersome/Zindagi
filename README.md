@@ -36,7 +36,7 @@ Your local demo progress is preserved separately and is never imported into comp
 
 ## Backend behavior
 
-- SQLite is created automatically at `data/zindagi.sqlite` and excluded from Git. It stores profiles, salted scrypt password hashes, hashed expiring session tokens, task sessions/awards, recording receipts (hash, size, MIME type), connections, blocks, guilds, and memberships. No video or audio is stored.
+- SQLite is created automatically at `data/zindagi.sqlite` and excluded from Git. It stores profiles, salted scrypt password hashes, hashed expiring session tokens, task sessions/awards, recording receipts (hash, size, MIME type), connections, blocks, guilds, and memberships. Private quest media is discarded. Explicitly public photos/videos are stored as bounded SQLite BLOBs in `moments`; `moment_views` records each account’s opening.
 - Authentication uses a random token in an HttpOnly, SameSite=Strict cookie. Production cookies require HTTPS. State-changing requests require the same-origin custom request header; cross-origin browser requests are rejected. API bodies and auth request rates are bounded.
 - The server owns task durations, pause/resume timestamps, categories, and rewards. One active session per account; completion is transactional and idempotent. Browser-submitted points/durations cannot award extra points. Timing verifies elapsed time, **not actual study or exercise**.
 - Adding a person to your circle is a one-way bookmark; it does not send them a message. Hiding a person excludes discovery in both directions. Shared guild membership still exposes member names and scores to fellow members.
@@ -101,7 +101,7 @@ The fifth aspect is now **Cultural**. Choose **Record talent** on its quest card
 
 Recording requires a supported `MediaRecorder` browser (current Chrome, Edge, Firefox, or Safari), a camera and microphone, and **localhost or HTTPS**. Access from a plain HTTP Wi-Fi address usually cannot record. Permission denial shows a retry message instead of offering file selection. Devices stop after recording, when the tab is hidden, or when the dialog closes. If a crash leaves a pending server session, use **Discard an unfinished recording** after the conflict message; otherwise it expires after 15 minutes.
 
-In local demo mode, the clip exists only in memory and never leaves the browser. For a signed-in account, clicking Submit transfers the captured clip to the same backend. The server accepts supported WebM/MP4 containers up to 15 MiB with an owned, unexpired recording session; it rejects empty/malformed submissions and exact duplicate clips per account. Awards and receipts commit together, and retries of an accepted submission cannot add a second point. The server discards the bytes after processing and saves only a hash, byte count, MIME type, and award. There is no public recording feed or archive.
+In local demo mode, the clip exists only in memory and never leaves the browser. For a signed-in account, clicking Submit transfers the captured clip to the same backend. The server accepts supported WebM/MP4 containers up to 15 MiB with an owned, unexpired recording session; it rejects empty/malformed submissions and exact duplicate clips per account. Awards and receipts commit together, and retries of an accepted submission cannot add a second point. By default, the server discards the bytes after processing and saves only a hash, byte count, MIME type, and award. Selecting **Make this capture public** also saves the clip in the Community feed. Existing/private submissions are never published retroactively.
 
 The supported interface is direct capture only. Container checks and recording-session ownership are **not** forensic liveness checks, talent assessment, or proof against a modified client submitting synthetic/re-encoded media. A production verified competition would need a separate verification design; this release does not claim one.
 
@@ -121,7 +121,7 @@ Sign in, open **Guilds**, then choose **Tasks & leaderboard** on a joined guild.
 - Close or reopen quests. Reward values are fixed at creation.
 - Approve submissions or request another attempt.
 
-Members describe their completed work and submit it for approval. Cultural guild quests instead require a fresh in-app camera and microphone recording, with review/retake before submission. The leader sees a recording receipt, not playable media: clips are discarded after processing. This is an honor-based review system, not automated talent verification.
+Members describe their completed work and submit it for approval. Cultural guild quests instead require a fresh in-app camera and microphone recording, with review/retake before submission. The review panel shows a recording receipt. Private clips are discarded after processing; explicitly public clips are available once per account in Community. This is an honor-based review system, not automated talent verification.
 
 Each member can earn each quest's reward once. Local rankings combine existing all-time category points with approved rewards from that specific guild; aspect filters include matching custom quests. Guild rewards do **not** change global points, profile stats, or another guild's leaderboard. Leaders must remain guild members to manage quests (rejoining restores the founder's role).
 
@@ -132,3 +132,18 @@ Implementation: `src/theme.js`, `src/light.css`, `src/guild-quests.js`, and `ser
 ## Fix camera access on other devices
 
 Phones and laptops opening an HTTP Wi-Fi address cannot use the camera because browsers require a secure context. Use a trusted HTTPS tunnel for a quick shared link, or configure the server's new HTTPS_CERT and HTTPS_KEY options for local HTTPS. See [phone/laptop recording setup](docs/device-recording.md) for Windows commands, certificate trust instructions, and troubleshooting. Merely changing http to https in the URL does not enable TLS.
+
+
+## Public view-once photos and videos
+
+Sign in and open **Community → The community stage**. Choose **Capture photo** or **Record video**, enable the device camera, capture, review/retake, and explicitly tick **Make this capture public** before publishing. There is no file/gallery upload. Photos need camera only; videos need camera and microphone. A standalone moment awards no points. Cultural quest and guild recordings also have the optional public checkbox, without changing their scoring rules.
+
+“Public” means visible to other signed-in members, regardless of discovery preference. Only the creator’s display name, date, media type, and availability appear in the feed; no photo/video thumbnails consume a view. Blocked accounts are excluded in both directions. **My posts only → Remove post** revokes future access without changing earned points. Removing a post cannot recall media already delivered to a viewer.
+
+**View once → Open once** consumes one opening per account, including the creator. A photo is visible for 10 seconds; a video plays once (with a 90-second safety limit). Closing, leaving the page, or switching tabs ends the viewer. Reloading/signing in again does not restore the view, and simultaneous tabs cannot claim twice. A failed download also consumes the opening. Server consumption happens before bytes are returned; this deliberately favors no repeat access over retrying a failed transfer.
+
+This is application-level view-once access, **not DRM**: screenshots, screen recording, browser developer tools, modified clients, and using another account cannot be prevented. Media is fetched with an authenticated POST, never exposed as a reusable public file URL, and responses use no-store. The browser discards its object URL when the viewer closes. Container checks do not prove camera liveness or artistic merit.
+
+Public media remains in the server database until its creator removes it. Limits: 15 MiB per capture, 10 live posts per author, 1 GiB total live media. The feed is paginated. SQLite automatically adds the new tables at startup. Backups now contain explicitly public media as well as account data; deleting a post does not erase prior backups. For a larger deployment, migrate media to private object storage with the same authenticated one-time claim checks. The current prototype has blocking and author removal, but no moderation/report queue.
+
+Implementation: `server/moments.js`, `src/moments.js`, and the shared camera dialog in `src/cultural-recorder.js`. Automated tests cover consent, capture ownership/expiry, validation, concurrent view claims, independent viewers, blocks, deletion, quotas, private defaults, and publication without duplicate quest awards.

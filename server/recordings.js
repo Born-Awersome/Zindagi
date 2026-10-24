@@ -32,7 +32,7 @@ export function validateRecording(bytes, contentType) {
   return {mime, digest:createHash('sha256').update(bytes).digest('hex'), bytes:bytes.length};
 }
 
-export function installRecordingRoutes({app, db, now, state}) {
+export function installRecordingRoutes({app, db, now, state, publishMoment}) {
   db.exec('CREATE TABLE IF NOT EXISTS recording_guild_tasks(activity_id TEXT PRIMARY KEY REFERENCES activity(id),task_id TEXT NOT NULL REFERENCES guild_tasks(id))');
   const get = (sql,...args) => db.prepare(sql).get(...args);
   const run = (sql,...args) => db.prepare(sql).run(...args);
@@ -83,6 +83,7 @@ export function installRecordingRoutes({app, db, now, state}) {
     }
     db.exec('BEGIN IMMEDIATE');
     try {
+      if(req.query.public==='true')publishMoment(req.user,req.body,receipt.mime,req.recording.id);
       run('INSERT INTO recording_receipts VALUES(?,?,?,?,?)',req.recording.id,req.user,receipt.digest,receipt.mime,receipt.bytes);
       if(linked)run("INSERT INTO guild_submissions(task_id,user_id,note,status,recording_id,submitted_at) VALUES(?,?,?,'pending',?,?) ON CONFLICT(task_id,user_id) DO UPDATE SET note=excluded.note,status='pending',recording_id=excluded.recording_id,submitted_at=excluded.submitted_at",linked.id,req.user,'Fresh Cultural recording submitted in the app.',req.recording.id,now());
       else run('INSERT INTO awards VALUES(?,?,?,?,?)',req.recording.id,req.user,'cultural',1,now());
@@ -90,7 +91,7 @@ export function installRecordingRoutes({app, db, now, state}) {
       run('UPDATE users SET updated_at=? WHERE id=?',now(),req.user);
       db.exec('COMMIT');
     } catch(error) {db.exec('ROLLBACK');throw error;}
-    // Never persist video/audio: only the receipt and award survive this request.
+    // Only explicitly public captures persist; private submission bytes are discarded.
     res.json(state(req.user));
   });
 }
