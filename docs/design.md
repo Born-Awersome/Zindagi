@@ -46,3 +46,8 @@ request consent, scoring and media permissions are unchanged by the redesign.
 
 The “Five aspects. One you.” caption sits centered across the hero, separate from
 the decorative emblem, with readable text on desktop and mobile.
+
+Home now uses a compact app dashboard: daily completions, total points and level
+progress, one recommended next action, two alternative challenges, a small balance
+chart, recent activity and navigation shortcuts. Full challenge browsing stays in
+Challenges, and discovery stays in Community. The signature slogan is secondary.
