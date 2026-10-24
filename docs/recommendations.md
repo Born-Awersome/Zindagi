@@ -11,7 +11,7 @@ This is a practical baseline for a hackathon, not a claim that one model is univ
 - Require authenticated requests.
 - Include only people who explicitly enabled profile discovery.
 - Exclude the requesting user and blocked relationships in either direction.
-- In nearby mode, both users need unexpired approximate presence and must be within the selected radius. A denied permission never falls back to a guessed location.
+- In nearby mode, both users need unexpired opt-in precise presence (results expose only broad distance bands) and must be within the selected radius. A denied permission never falls back to a guessed location.
 - No emails, usernames, hashes, coordinates, or precise distances are returned in candidate responses.
 
 ## People score
@@ -42,7 +42,7 @@ Automated tests check cold-start finite scores, focus ordering, nearby radius ex
 
 ## Evidence needed before a learned upgrade
 
-Collect only necessary, consented events: recommendation shown, explanation shown, profile opened, circle added/removed, guild joined/left, and later shared challenge participation. Keep raw coordinates out of these events. Include impression logging so unseen candidates are not treated as negative examples. Do not infer sensitive traits.
+Collect only necessary, consented events: recommendation shown, explanation shown, profile opened, friend request accepted/removed or Connect accepted/removed, guild joined/left, and later shared challenge participation. Keep raw coordinates out of these events. Include impression logging so unseen candidates are not treated as negative examples. Do not infer sensitive traits.
 
 Use chronological train/validation/test splits with user-level leakage checks. Evaluate Recall@K and NDCG@K alongside acceptance rate, retained guild participation, diversity, coverage for new users, and opt-out rates. Compare against focus-only, distance-only, and hybrid-v1 baselines. Do not optimize for time spent on the site.
 

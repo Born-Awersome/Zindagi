@@ -1,0 +1,4 @@
+export const LOCATION_TTL_MS=30000;
+export const CONNECT_MIN_METERS=5;
+export const CONNECT_MAX_METERS=40;
+export const CONNECT_MAX_ACCURACY_METERS=10;

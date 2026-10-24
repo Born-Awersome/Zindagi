@@ -11,7 +11,7 @@ async function setup(t,filename=':memory:'){
  let time=Date.now();const backend=createApp({filename,now:()=>time});const server=backend.app.listen(0,'127.0.0.1');await once(server,'listening');
  t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));backend.close();});
  const url=`http://127.0.0.1:${server.address().port}`;
- const client=()=>{let cookie='';return async(path,method='GET',body,expected=200)=>{const response=await fetch(url+'/api'+path,{method,headers:{'Content-Type':'application/json','X-Zindagi':'1',cookie},body:body===undefined?undefined:JSON.stringify(body)});if(response.headers.get('set-cookie'))cookie=response.headers.get('set-cookie').split(';')[0];const result=await response.json();assert.equal(response.status,expected,JSON.stringify(result));return result;};};
+ const client=()=>{let cookie='';return async(path,method='GET',body,expected=200)=>{if(path==='/location'&&method==='PUT')body={accuracy:5,capturedAt:++time,...body};const response=await fetch(url+'/api'+path,{method,headers:{'Content-Type':'application/json','X-Zindagi':'1',cookie},body:body===undefined?undefined:JSON.stringify(body)});if(response.headers.get('set-cookie'))cookie=response.headers.get('set-cookie').split(';')[0];const result=await response.json();assert.equal(response.status,expected,JSON.stringify(result));return result;};};
  return {client,url,backend,advance:ms=>time+=ms};
 }
 const register=(client,username)=>client('/auth/register','POST',{username,password:'test-password-123',name:username},201);
@@ -48,9 +48,9 @@ test('authenticated accounts, server scoring, guild isolation, connections and p
  const board=await b(`/guilds/${guild.id}/leaderboard`);assert.equal(board[0].id,alice.id);assert.equal(board[0].score,1);
  assert.equal((await b(`/guilds/${guild.id}/leaderboard?aspect=fitness`))[0].score,0);
  await a('/location','PUT',{latitude:12.97,longitude:77.59});await b('/location','PUT',{latitude:12.98,longitude:77.60});
- await a(`/connections/${bob.id}`,'POST');assert.ok((await a('/me')).connections.includes(bob.id));
- await b(`/blocks/${alice.id}`,'POST');assert.equal((await a('/recommendations')).people.length,0);assert.equal((await a('/me')).connections.length,0);
- await a(`/connections/${bob.id}`,'POST',undefined,404);
+ await a(`/social/friend/${bob.id}/request`,'POST',{},201);await b(`/social/friend/${alice.id}/accept`,'POST',{});assert.ok((await a('/me')).friends.includes(bob.id));
+ await b(`/blocks/${alice.id}`,'POST');assert.equal((await a('/recommendations')).people.length,0);assert.equal((await a('/me')).friends.length,0);
+ await a(`/social/friend/${bob.id}/request`,'POST',{},404);
  await b(`/guilds/${guild.id}/membership`,'DELETE');await b(`/guilds/${guild.id}/leaderboard`,'GET',undefined,403);
  await a('/location','DELETE');await a('/recommendations?nearby=true','GET',undefined,409);
  const response=await fetch(url+'/api/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});assert.equal(response.status,403);
@@ -60,10 +60,10 @@ test('authenticated accounts, server scoring, guild isolation, connections and p
 
 test('opt-in, expired presence, and opt-out remove nearby eligibility',async t=>{
  const {client,advance}=await setup(t),a=client(),b=client();await register(a,'nearby_a');await register(b,'nearby_b');
- await a('/location','PUT',{latitude:0,longitude:0},409);await visible(a,'A');await visible(b,'B');
+ assert.equal((await a('/social')).presence.sharing,false);await visible(a,'A');await visible(b,'B');
  for(const c of [a,b])await c('/location','PUT',{latitude:0,longitude:0});
  assert.equal((await a('/recommendations?nearby=true')).people.length,1);
- advance(15*60000+1);await a('/location','PUT',{latitude:0,longitude:0});assert.equal((await a('/recommendations?nearby=true')).people.length,0);
+ advance(30001);await a('/location','PUT',{latitude:0,longitude:0});assert.equal((await a('/recommendations?nearby=true')).people.length,0);
  await b('/location','PUT',{latitude:0,longitude:0});await b('/me','PATCH',{name:'B',goal:'',interests:'fitness',discoverable:false});assert.equal((await a('/recommendations')).people.length,0);
 });
 
