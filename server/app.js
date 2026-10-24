@@ -1,4 +1,5 @@
 import express from 'express';
+import { isDatabaseBusy, databaseLockMessage } from './database.js';
 import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, randomUUID, scrypt, timingSafeEqual, createHash } from 'node:crypto';
 import { promisify } from 'node:util';
@@ -15,9 +16,14 @@ const fail=(status,message)=>Object.assign(new Error(message),{status});
 function text(value,min,max,label){if(typeof value!=='string'||value.trim().length<min||value.trim().length>max)throw fail(400,`${label} must have ${min}–${max} characters.`);return value.trim();}
 function passwordValue(value){if(typeof value!=='string'||value.length<10||value.length>128)throw fail(400,'Password must have 10–128 characters.');return value;}
 function aspect(value){if(!aspectIds.includes(value))throw fail(400,'Choose a valid life aspect.');return value;}
-export function createApp({filename=process.env.DATABASE_PATH||'data/zindagi.sqlite',now=Date.now,production=process.env.NODE_ENV==='production',origin=process.env.APP_ORIGIN}={}) {
+export function createApp({filename=process.env.DATABASE_PATH||'data/zindagi.sqlite',now=Date.now,production=process.env.NODE_ENV==='production',origin=process.env.APP_ORIGIN,busyTimeoutMs=5000}={}) {
   if(filename!==':memory:')mkdirSync(dirname(resolve(filename)),{recursive:true});
-  const db=new DatabaseSync(filename);db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
+  if(!Number.isInteger(busyTimeoutMs)||busyTimeoutMs<0||busyTimeoutMs>30000)throw new Error('Invalid SQLite busy timeout.');
+  const db=new DatabaseSync(filename);
+  try {
+  // Set the wait before schema creation and migrations, including on Node 24.12.
+  db.exec('PRAGMA busy_timeout='+busyTimeoutMs);
+  db.exec(`PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;
     CREATE TABLE IF NOT EXISTS users(id TEXT PRIMARY KEY,username TEXT UNIQUE NOT NULL,password TEXT NOT NULL,name TEXT NOT NULL,goal TEXT DEFAULT '',interests TEXT DEFAULT 'academics',discoverable INTEGER DEFAULT 0,updated_at INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS auth(token TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id) ON DELETE CASCADE,expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS activity(id TEXT PRIMARY KEY,user_id TEXT REFERENCES users(id),task_id TEXT NOT NULL,started INTEGER NOT NULL,ends INTEGER NOT NULL,paused INTEGER,status TEXT NOT NULL);
@@ -89,7 +95,13 @@ export function createApp({filename=process.env.DATABASE_PATH||'data/zindagi.sql
   app.use('/api',(_req,res)=>res.status(404).json({error:'API route not found.'}));
   app.use(express.static(resolve('dist')));
   app.get('/',(_req,res)=>res.sendFile(resolve('dist/index.html')));
-  app.use((error,_req,res,_next)=>{const status=error.status||500;res.status(status).json({error:status===500?'Server error. Please try again.':error.message});});
-  const cleanup=setInterval(()=>{for(const id of locations.keys())location(id);run('DELETE FROM auth WHERE expires<=?',now());},30000);cleanup.unref();
+  app.use((error,_req,res,_next)=>{if(isDatabaseBusy(error))return res.set('Retry-After','5').status(503).json({error:'The database is busy. Please try again shortly.'});const status=error.status||500;res.status(status).json({error:status===500?'Server error. Please try again.':error.message});});
+  const cleanup=setInterval(()=>{for(const id of locations.keys())location(id);try{run('DELETE FROM auth WHERE expires<=?',now());}catch(error){if(!isDatabaseBusy(error))console.error('Session cleanup failed:',error.message);}},30000);cleanup.unref();
   return {app,db,close:()=>{clearInterval(cleanup);locations.clear();db.close();}};
+  } catch(error) {
+    // Closing also rolls back an interrupted startup migration and releases locks.
+    db.close();
+    if(isDatabaseBusy(error))throw Object.assign(new Error(databaseLockMessage,{cause:error}),{code:'DATABASE_BUSY'});
+    throw error;
+  }
 }

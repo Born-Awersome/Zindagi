@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { transportOptions, createWebServer } from './transport.js';
+try {
 const tls=transportOptions();
 const {app,close}=createApp({production:!!tls||process.env.NODE_ENV==='production'});
 const port=Number(process.env.PORT||3001);
@@ -12,3 +13,8 @@ server.listen(port,host,()=>{
 });
 server.on('error',error=>{console.error('Server could not start:',error.message);close();process.exitCode=1;});
 for(const signal of ['SIGTERM','SIGINT'])process.on(signal,()=>server.close(()=>{close();process.exit(0);}));
+
+} catch(error) {
+  console.error("Zindagi could not start:",error.message);
+  process.exitCode=1;
+}

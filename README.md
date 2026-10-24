@@ -143,3 +143,11 @@ The Community stage, standalone photo/video posts, and view-once restrictions ha
 Use **My videos only → Remove video** to stop future access while keeping earned points. Blocked accounts are excluded in both directions. Existing captures still require the camera; there is no file upload. Limits remain 15 MiB per recording, 10 shared Cultural videos per author, and 1 GiB total stored media. Public here means other signed-in members. Media is stored until removed, and database backups can contain it.
 
 Implementation: `server/cultural-videos.js`, `src/cultural-gallery.js`, and `src/cultural-recorder.js`. The media endpoint supports HTTP byte ranges for seeking and repeated GET requests without consumption counters or playback timers.
+
+## “Database is locked” on startup
+
+This means another connection holds a SQLite transaction; it is unrelated to the optional `.env not found` notice. Save or revert pending edits in DB Browser for SQLite, then close it. Stop any other Zindagi development/production server with Ctrl+C before running `npm.cmd start` again. Run only one backend for this prototype.
+
+The app waits up to five seconds for each SQLite lock before reporting a recovery message. Brief competing writes can therefore finish without immediately failing startup. A failed startup closes its database connection and rolls back any unfinished migration. If a running API request encounters a persistent lock, it returns a retryable 503 response.
+
+Do not delete `data/zindagi.sqlite`, `-wal`, or `-shm` files to clear a lock; they can contain saved progress. When browsing the database, use DB Browser's read-only opening mode when possible and avoid leaving an editing transaction open.
