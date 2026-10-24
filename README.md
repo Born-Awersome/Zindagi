@@ -151,3 +151,9 @@ This means another connection holds a SQLite transaction; it is unrelated to the
 The app waits up to five seconds for each SQLite lock before reporting a recovery message. Brief competing writes can therefore finish without immediately failing startup. A failed startup closes its database connection and rolls back any unfinished migration. If a running API request encounters a persistent lock, it returns a retryable 503 response.
 
 Do not delete `data/zindagi.sqlite`, `-wal`, or `-shm` files to clear a lock; they can contain saved progress. When browsing the database, use DB Browser's read-only opening mode when possible and avoid leaving an editing transaction open.
+
+## Install as a mobile or desktop app (PWA)
+
+Build and start the server, open its HTTPS address, and select **Install app**. Android users can also use Chrome's install menu; iPhone users use Safari → Share → Add to Home Screen. Zindagi launches from its icon in a standalone app window, using the same accounts, guilds, points, and Cultural videos.
+
+The backend must remain online for shared features. An offline reconnect screen is provided; private API data and videos are not cached, and submissions are not queued offline. Use a stable HTTPS address for an app you intend to keep installed. See [PWA installation and operation](docs/pwa.md).

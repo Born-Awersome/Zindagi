@@ -1,0 +1,11 @@
+/* Keep app controls clear of phone notches and gesture bars. */
+@media(max-width:540px){
+  header{padding-top:env(safe-area-inset-top);height:calc(61px + env(safe-area-inset-top));padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
+  .sidebar{height:calc(67px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)}
+  main{margin-bottom:calc(67px + env(safe-area-inset-bottom))}
+  #toast{bottom:calc(81px + env(safe-area-inset-bottom))}
+  input:not([type=checkbox]),select,textarea{font-size:16px}
+  .button,.start-task,.chip{min-height:44px}
+}
+#install-app[hidden]{display:none!important}#install-dialog{max-width:520px}#install-dialog p,#install-dialog li{font-size:13px;line-height:1.8}#install-dialog li{margin:12px 0}
+@media(max-width:540px){header{flex-wrap:wrap;height:auto;min-height:calc(61px + env(safe-area-inset-top));gap:6px;padding-bottom:8px}.header-actions{gap:10px;flex-wrap:wrap}.header-actions .text-button{min-height:32px;font-size:10px}.breadcrumb{width:100%;padding-top:8px}}
