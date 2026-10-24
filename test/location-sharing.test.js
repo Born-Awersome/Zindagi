@@ -38,3 +38,14 @@ test('a failed network sync retries without deleting presence or disabling GPS',
 test('Stop wins an in-flight upload race and old callbacks cannot reactivate GPS',async()=>{
  let finish;const operations=[];const s=setup({send:()=>new Promise(resolve=>{operations.push('put');finish=resolve;}),remove:async()=>operations.push('delete')});s.controller.start();const w=[...s.watches.values()][0];w.ok(s.fix());await flush();const stopped=s.controller.stop();finish({accuracyMeters:2});await stopped;w.ok(s.fix());await flush();assert.deepEqual(operations,['put','delete']);assert.equal(s.controller.snapshot().sharing,false);assert.equal(s.controller.snapshot().enabled,false);
 });
+test('temporary sharing expires while hidden and cannot restart or extend itself on return',async()=>{
+ let expire,delay,cleared=false;const s=setup({setLater:(fn,ms)=>{expire=fn;delay=ms;return 42;},clearLater:id=>{if(id===42)cleared=true;}});
+ s.controller.start({durationMs:15*60000});assert.equal(delay,900000);const end=s.controller.snapshot().sessionEndsAt;
+ s.ones.shift().ok(s.fix());await flush();s.controller.retry();assert.equal(s.controller.snapshot().sessionEndsAt,end);
+ s.hide(true);expire();await flush();assert.equal(s.controller.snapshot().enabled,false);assert.ok(cleared);s.hide(false);assert.equal(s.watches.size,0);assert.match(s.controller.snapshot().message,/session ended/);
+});
+test('fresh watch updates avoid redundant one-shot GPS requests',async()=>{
+ const s=setup();s.controller.start();s.ones.shift().ok(s.fix());await flush();const watch=[...s.watches.values()][0];
+ s.advance(6000);watch.ok(s.fix());await flush();s.advance(5000);assert.equal(s.ones.length,0);
+ s.advance(5000);assert.equal(s.ones.length,1);
+});

@@ -173,7 +173,7 @@ In **Community → Find people**, use recommendations or search by exact usernam
 - **Connect** sends a separate request. The recipient can accept only when both people have opted into precise location and the server's current distance check passes. Existing friendship is not required. Accepted connections persist after you move away or stop sharing; either person can disconnect.
 - Incoming requests, sent requests, friends, and connected people are listed separately. Request status refreshes every four seconds in the foreground. Pending Connect requests show Your GPS, Their GPS, and the 5–40 metre check to both people, with a link to **Location settings** in Profile and a **Check now** control. Sending Connect opens the request panel; only the recipient can accept. Temporary failures leave the request pending. Sign-out, blocking, and account changes do not transfer requests to another user.
 
-For Connect, open **My profile** on both devices and enable precise location once. Return to Community to send or accept requests. Allow the browser permission, and select Precise location in Android/iOS settings. The app requests high accuracy with no cached-position allowance; it cannot force the operating system to grant precision. A foreground watch plus non-overlapping fresh-position checks keeps the location current. Temporary GPS timeouts and network failures retry automatically without switching tracking off. Hiding the app pauses GPS and removes server presence; returning to the visible app resumes your existing opt-in. Switching app tabs does not stop location. Stop sharing clears the saved preference. Signing out or closing the page stops tracking; a future signed-in visit resumes the saved preference only with already-granted browser permission. Sharing does not run in the background. Use **Retry GPS now** without clearing a still-valid fix.
+For Connect, open **My profile** on both devices and choose a sharing duration and press **Start sharing**. Return to Community to send or accept requests. Allow the browser permission, and select Precise location in Android/iOS settings. The app requests high accuracy with no cached-position allowance; it cannot force the operating system to grant precision. A foreground watch plus non-overlapping fresh-position checks keeps the location current. Temporary GPS timeouts and network failures retry automatically without switching tracking off. Hiding the app pauses GPS and removes server presence; returning to the visible app resumes your existing opt-in. Switching app tabs does not stop location. Stop sharing clears the saved preference. Signing out or closing the page stops tracking; a future signed-in visit resumes the saved preference only with already-granted browser permission. Sharing does not run in the background. Use **Refresh GPS** without clearing a still-valid fix. Fresh watch updates suppress unnecessary extra GPS requests.
 
 The server requires readings no more than **30 seconds old**, each reporting accuracy of **10 metres or better**. The measured separation must be **5–40 metres**, and that interval must also contain the separation plus/minus both reported accuracy radii. For example, 20 metres apart with ±2 m on each phone passes; 7 metres apart with ±2 m on each phone does not. Try the middle of the range outdoors for better results. A stale/uncertain fix leaves the request pending; it can be retried without resending.
 
@@ -209,3 +209,24 @@ automatically. Unit/API coverage includes relationship access checks, blocks,
 read cursor isolation, pagination, duplicate sends, and persistence across restart.
 Design and interaction code lives in `src/community.js` and `src/community.css`;
 backend authorization and storage live in `server/community.js`.
+
+
+## Profile journal and location controls
+
+The progress journal groups completions by local calendar day. Filter by life
+aspect and the last 7/30 calendar days, or all available history. Eight entries
+appear initially; Load more reveals eight at a time. Counts and points summarize
+the filtered history, not lifetime totals. Account history currently contains the
+latest 100 completions; browser-only history uses the entries saved on this device.
+Practice and recorded-performance entries remain labelled. Local progress reset
+is tucked under Manage local progress and retains its confirmation dialog.
+
+Location is still configured only in My profile. New sharing defaults to a
+**15-minute session**, never saved for another visit. It expires even if the app
+is hidden; refreshing GPS or returning to the app does not extend its deadline.
+Choose **While the app is open · remember my choice** for the existing saved
+preference. Existing remembered choices continue to work. Both modes pause when
+hidden and clear coordinates from the server; the 30-second freshness and 5–40
+metre Connect acceptance rules are unchanged. The status card shows accuracy,
+reading age, and own-device GPS readiness separately from the peer/distance
+checks. Its updates and Stop action preserve unsaved profile form edits.

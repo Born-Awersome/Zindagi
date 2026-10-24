@@ -3,17 +3,18 @@ import { LOCATION_TTL_MS } from './proximity-policy.js';
 // Device acquisition and server presence are separate: a transient error must not
 // revoke the user's choice. Inject dependencies so races can be tested without GPS.
 export function createLocationSharing({geo,send,remove,onChange,now=Date.now,
- setEvery=setInterval,clearEvery=clearInterval,hidden=()=>document.hidden}){
+ setEvery=setInterval,clearEvery=clearInterval,setLater=setTimeout,clearLater=clearTimeout,hidden=()=>document.hidden}){
  let enabled=false,generation=0,watch=null,heartbeat=null,pendingFix=false;
  let queue=Promise.resolve(),expiresAt=0,accuracy=null,lastTimestamp=0,lastSentAt=0,lastAttempt=0;
+ let sessionEndsAt=null,sessionTimer=null;
  let phase='off',message='Location sharing is off.';
  const options={enableHighAccuracy:true,maximumAge:0,timeout:20000};
- const snapshot=()=>({enabled,phase,message,accuracy,sharing:enabled&&!hidden()&&expiresAt>now(),expiresAt});
+ const snapshot=()=>({enabled,phase,message,accuracy,sharing:enabled&&!hidden()&&expiresAt>now(),expiresAt,sessionEndsAt});
  const emit=()=>onChange(snapshot());
  function state(next,text){phase=next;message=text;emit();}
  function clearDevice(){generation++;if(watch!==null)geo?.clearWatch(watch);watch=null;if(heartbeat!==null)clearEvery(heartbeat);heartbeat=null;pendingFix=false;}
  function erase(){expiresAt=0;accuracy=null;lastTimestamp=0;lastSentAt=0;queue=queue.catch(()=>{}).then(()=>remove()).catch(()=>{});return queue;}
- function stop(reason='Location sharing is off.') {enabled=false;clearDevice();const done=erase();state('off',reason);return done;}
+ function stop(reason='Location sharing is off.') {enabled=false;clearDevice();clearLater(sessionTimer);sessionTimer=null;sessionEndsAt=null;const done=erase();state('off',reason);return done;}
  function fail(error,gen){
   if(gen!==generation||!enabled||hidden())return;
   if(error.code===1){stop('Location permission denied. Allow precise location in your browser and phone settings, then try again. Friends still works without GPS.');return;}
@@ -55,19 +56,22 @@ export function createLocationSharing({geo,send,remove,onChange,now=Date.now,
   heartbeat=setEvery(()=>{
    if(gen!==generation||!enabled||hidden())return;
    if(expiresAt&&expiresAt<=now()&&phase==='active')state('retrying','GPS is still enabled. The last reading expired; retrying for a fresh fix. Connect will unlock when both readings are ready.');
-   if(now()-lastAttempt>=10000)acquire(gen);
+   if(now()-lastAttempt>=10000&&now()-lastSentAt>=10000)acquire(gen);
   },5000);
  }
- function start(){
+ function start({durationMs=null}={}){
   if(!geo){state('off','This browser does not support location. Use a browser with GPS support over HTTPS.');return;}
   if(enabled){retry();return;}
+  if(durationMs!==null&&(!Number.isFinite(durationMs)||durationMs<=0))throw new Error('Invalid location sharing duration.');
   enabled=true;
+  if(durationMs!==null){sessionEndsAt=now()+durationMs;sessionTimer=setLater(()=>stop('Your sharing session ended. Your location is off.'),durationMs);sessionTimer?.unref?.();}
   if(hidden()){state('paused','Location is paused while the app is hidden. Return here to resume.');return;}
   run();
  }
  function retry(){if(!enabled){start();return;}if(!hidden())acquire(generation);}
  function visibility(){
   if(!enabled)return;
+  if(sessionEndsAt&&now()>=sessionEndsAt){stop('Your sharing session ended. Your location is off.');return;}
   if(hidden()){clearDevice();erase();state('paused','Location paused while the app is hidden. It will resume when you return to this page.');}
   else if(phase==='paused')run();
  }
