@@ -29,7 +29,7 @@ Open `http://localhost:3001`. The backend serves both `dist/` and `/api`. `npm r
 2. Open **My profile** and choose your main focus, describe your goals, and explicitly enable discovery if you want to appear in recommendations and the community leaderboard.
 3. Create a second account in an incognito window or a different browser. Both browsers must use the **same running backend**. Profiles, scores, and guilds now persist across devices that connect to that server.
 4. Open **Guilds** to create or join an open group. Only members can view its member leaderboard. Scores include all-time earned points and can be filtered by aspect; ties share a rank.
-5. Use **Community → Friends & Connect** to find an exact username and send a request. Friends can be accepted anywhere; Connect requires both people to enable precise location and pass a fresh 5–40 metre proximity check. Profile discovery controls listing in nearby recommendations, not direct username requests. Location requires HTTPS or localhost.
+5. Use **Community → Find people** to find an exact username and send a request. Friends can be accepted anywhere; Connect requires both people to enable precise location in My profile and pass a fresh 5–40 metre proximity check. Profile discovery controls listing in nearby recommendations, not direct username requests. Location requires HTTPS or localhost.
 6. **Community** recommends actual opt-in accounts. New databases have no fake accounts or scores; empty results are expected until others sign up. Recommendations refresh on page navigation and via Refresh.
 
 Your local demo progress is preserved separately and is never imported into competitive scores. Sign out to try accelerated 20-second demo sessions for timed quests. Cultural always requires a fresh camera recording, even in demo mode. Signed-in timed tasks use their full duration, including **50 minutes study + 10 minutes rest = 1 Academic Point**.
@@ -40,7 +40,7 @@ Your local demo progress is preserved separately and is never imported into comp
 - Authentication uses a random token in an HttpOnly, SameSite=Strict cookie. Production cookies require HTTPS. State-changing requests require the same-origin custom request header; cross-origin browser requests are rejected. API bodies and auth request rates are bounded.
 - The server owns task durations, pause/resume timestamps, categories, and rewards. One active session per account; completion is transactional and idempotent. Browser-submitted points/durations cannot award extra points. Timing verifies elapsed time, **not actual study or exercise**.
 - Friends and Connect are separate, mutual relationships. Requests need recipient acceptance. Blocking removes both kinds of pending/accepted links and hides discovery in both directions. Shared guild membership still exposes member names and scores to fellow members. Old circle bookmarks are retained only as legacy data and never automatically become mutual friends or connections.
-- Precise coordinates and reported accuracy are held only in server memory for a 30-second validity window; fresh readings replace old ones. Expiry, Stop sharing, sign-out, and profile discovery opt-out clear presence. No coordinates or location history go into SQLite. Clients pause tracking and clear presence when hidden, then resume the existing opt-in on return. Leaving Community/Guilds ends the opt-in. Others see broad distance bands or a Connect readiness result, never raw coordinates. If disconnect cleanup fails, the location expires. Nearby guild discovery excludes members who have disabled profile discovery.
+- Precise coordinates and reported accuracy are held only in server memory for a 30-second validity window; fresh readings replace old ones. Expiry, Stop sharing, and sign-out clear presence. Profile discoverability and the saved location preference are independent. No coordinates or location history go into SQLite. Clients pause tracking and clear presence when hidden, then resume the existing opt-in on return. The Profile preference applies across app tabs and is saved per account on this device; returning to a signed-in app resumes it only if browser permission is already granted. Others see broad distance bands or a Connect readiness result, never raw coordinates. If disconnect cleanup fails, the location expires. Nearby guild discovery excludes members who have disabled profile discovery.
 - Guilds with active nearby members appear ahead of other groups, followed by matching focus. A guild does not expose a home address or permanent coordinate.
 
 ## Recommendation model
@@ -167,16 +167,45 @@ The initial app screen, active API requests, recording preparation/submission, a
 
 ## Friends and proximity-based Connect
 
-In **Community**, use recommendations or **Find someone by exact username**. Your own username is shown in Friends & Connect.
+In **Community → Find people**, use recommendations or search by exact username. Your own username is shown below the search field.
 
 - **Add friend** sends a request. The recipient chooses Accept or Decline. It works at any distance and does not need location. Senders can cancel requests, and either person can remove an accepted friendship.
 - **Connect** sends a separate request. The recipient can accept only when both people have opted into precise location and the server's current distance check passes. Existing friendship is not required. Accepted connections persist after you move away or stop sharing; either person can disconnect.
-- Incoming requests, sent requests, friends, and connected people are listed separately. Request status refreshes every four seconds in the foreground. Pending Connect requests show Your GPS, Their GPS, and the 5–40 metre check to both people, with **Enable / retry GPS** and **Check now** controls. Sending Connect opens the request panel; only the recipient can accept. Temporary failures leave the request pending. Sign-out, blocking, and account changes do not transfer requests to another user.
+- Incoming requests, sent requests, friends, and connected people are listed separately. Request status refreshes every four seconds in the foreground. Pending Connect requests show Your GPS, Their GPS, and the 5–40 metre check to both people, with a link to **Location settings** in Profile and a **Check now** control. Sending Connect opens the request panel; only the recipient can accept. Temporary failures leave the request pending. Sign-out, blocking, and account changes do not transfer requests to another user.
 
-For Connect, open Community or Guilds on **both devices** and press **Enable precise location**. Allow the browser permission, and select Precise location in Android/iOS settings. The app requests high accuracy with no cached-position allowance; it cannot force the operating system to grant precision. A foreground watch plus non-overlapping fresh-position checks keeps the location current. Temporary GPS timeouts and network failures retry automatically without switching tracking off. Hiding the app pauses GPS and removes server presence; returning to Community/Guilds resumes your existing opt-in. Stop, navigating away, signing out, or closing the page ends that opt-in. Sharing does not run in the background. Use **Retry GPS now** without clearing a still-valid fix.
+For Connect, open **My profile** on both devices and enable precise location once. Return to Community to send or accept requests. Allow the browser permission, and select Precise location in Android/iOS settings. The app requests high accuracy with no cached-position allowance; it cannot force the operating system to grant precision. A foreground watch plus non-overlapping fresh-position checks keeps the location current. Temporary GPS timeouts and network failures retry automatically without switching tracking off. Hiding the app pauses GPS and removes server presence; returning to the visible app resumes your existing opt-in. Switching app tabs does not stop location. Stop sharing clears the saved preference. Signing out or closing the page stops tracking; a future signed-in visit resumes the saved preference only with already-granted browser permission. Sharing does not run in the background. Use **Retry GPS now** without clearing a still-valid fix.
 
 The server requires readings no more than **30 seconds old**, each reporting accuracy of **10 metres or better**. The measured separation must be **5–40 metres**, and that interval must also contain the separation plus/minus both reported accuracy radii. For example, 20 metres apart with ±2 m on each phone passes; 7 metres apart with ±2 m on each phone does not. Try the middle of the range outdoors for better results. A stale/uncertain fix leaves the request pending; it can be retried without resending.
 
 This is a GPS-based estimate, not cryptographic proof of a meeting. Device accuracy estimates are imperfect, and a modified client can spoof location data. Exact coordinates are sent only to your backend for these checks, never to other users or the database. Private profiles can use direct username requests and Connect without appearing in nearby recommendations. Both users still need separate, explicit location consent.
 
 SQLite automatically creates `social_links` for relationships. Legacy `connections` rows and browser circle bookmarks are not migrated into accepted links. Implementation: `server/social.js`, `src/social.js`, and `src/proximity-policy.js`.
+
+
+## Community, notifications, and direct messages
+
+Community has **Your people**, **Requests**, **Messages**, and **Find people**.
+One person appears once in Your people even if you are both friends and connected.
+The notification bell exists only in Community. Request and acceptance events are
+stored in SQLite with account-scoped read state; opening the bell never requests
+browser/OS notification permission. Accepting a request marks its incoming event
+read. Cancelled or already handled requests are labelled resolved. Existing pending
+requests are added to the inbox when the notification schema is first created.
+
+Messages are plain text (up to 2,000 characters), available only when at least one
+accepted friendship or connection exists. Pending requests and shared guilds do
+not grant access. Blocking or removing the last relationship prevents either
+person from fetching or sending further messages. History is retained in SQLite
+and becomes accessible again if a relationship is later re-established. Messages
+are server-stored, **not end-to-end encrypted**; the server/database operator can
+access them. There are no file attachments, push notifications, or background
+message deliveries. Unsent drafts stay only in this tab's memory and are cleared
+on sign-out. Sends have idempotency keys so retrying a network failure does not
+create duplicate messages. History loads 50 messages at a time and has an earlier
+messages control. Conversation unread counts update while Community is open.
+
+The new `notifications`, `direct_messages`, and `message_reads` tables are created
+automatically. Unit/API coverage includes relationship access checks, blocks,
+read cursor isolation, pagination, duplicate sends, and persistence across restart.
+Design and interaction code lives in `src/community.js` and `src/community.css`;
+backend authorization and storage live in `server/community.js`.

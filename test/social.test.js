@@ -71,7 +71,7 @@ test('precise sharing on a private profile does not expose that person through n
  const guild=await a.c('/guilds','POST',{name:'Private nearby member',description:'Test',aspect:'academics'},201);
  await fix(a.c,0);await fix(b.c,20);assert.equal((await b.c('/guilds?nearby=true&radius=5')).length,0);assert.equal((await b.c('/recommendations?nearby=true&radius=5')).people.length,0);
  await a.c('/me','PATCH',{name:'Visible person',goal:'',interests:'academics',discoverable:true});assert.equal((await b.c('/guilds?nearby=true&radius=5'))[0].id,guild.id);
- await a.c('/me','PATCH',{name:'Private person',goal:'',interests:'academics',discoverable:false});assert.equal((await a.c('/social')).presence.sharing,false);
+ await a.c('/me','PATCH',{name:'Private person',goal:'',interests:'academics',discoverable:false});assert.equal((await a.c('/social')).presence.sharing,true);assert.equal((await b.c('/guilds?nearby=true&radius=5')).length,0);
 });
 test('both Connect participants see actionable readiness without coordinates or automatic acceptance',async t=>{
  const {register,fix}=await setup(t),a=await register('alice'),b=await register('bob');await a.c(`/social/connect/${b.id}/request`,'POST',{},201);

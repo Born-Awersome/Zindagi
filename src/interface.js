@@ -16,7 +16,7 @@ export function bindInterface(page){
  cleanup=()=>{close(false);document.removeEventListener('keydown',keys);mobile.removeEventListener('change',resize);};
  // Preserve native select behavior and accessibility while drawing an animated arrow.
  document.querySelectorAll('select').forEach(select=>{if(select.parentElement.classList.contains('select-shell'))return;const shell=document.createElement('span');shell.className='select-shell';select.before(shell);shell.append(select);});
- const content=document.querySelector('.content');if(lastPage!==page){content.classList.add('view-enter');if(lastPage!==null){const title=content.querySelector('h1');title.tabIndex=-1;title.focus({preventScroll:true});}}lastPage=page;
+ const content=document.querySelector('.content');if(lastPage!==page){content.classList.add('view-enter');if(lastPage!==null){const title=content.querySelector('.community-masthead h1')||content.querySelector('h1');title.tabIndex=-1;title.focus({preventScroll:true});}}lastPage=page;
 }
 export function bindVideoLoading(video){
  const frame=video.closest('.video-frame'),overlay=frame.querySelector('.video-buffering');
