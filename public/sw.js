@@ -1,6 +1,6 @@
 // Only public, static offline-screen resources are cached. Account/API/media
 // responses and mutations always go to the server, never an offline queue.
-const CACHE='zindagi-offline-v1';
+const CACHE='zindagi-offline-v2';
 const FILES=['/offline.html','/icons/icon-192.png','/icons/icon-512.png','/icons/maskable-512.png','/icons/apple-touch-icon.png'];
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)));

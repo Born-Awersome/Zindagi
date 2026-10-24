@@ -1,0 +1,196 @@
+/* Zindagi / Life, in progress. Shared tokens keep every feature in both themes. */
+@font-face{font-family:'Space Grotesk';src:url('/fonts/SpaceGrotesk.ttf') format('truetype');font-weight:300 700;font-style:normal;font-display:swap}
+:root[data-theme]{--font-display:'Space Grotesk',system-ui,sans-serif;--paper:#141714;--surface:#1d211d;--raised:#262c25;--ink:#f2f1e8;--subtle:#aeb5a7;--line:#3a4237;--brand-accent:#dcf68d;--accent-ink:#202817;--soft:#313b25;--green:var(--brand-accent);--muted:var(--subtle);--border:var(--line);--hero-bg:#dcf68d;--hero-ink:#202817;--shadow:0 12px 32px #00000018;font-family:var(--font-display);background:var(--paper);color:var(--ink)}
+:root[data-theme=light]{--paper:#f2f0e8;--surface:#fcfbf5;--raised:#e9e7dc;--ink:#22291f;--subtle:#606858;--line:#d3d6c6;--brand-accent:#3f5a25;--accent-ink:#f8f9ed;--soft:#e2e9cf;--hero-bg:#e0edb5;--hero-ink:#25321b;--shadow:0 12px 32px #39432b08}
+html[data-theme] body{background:var(--paper);color:var(--ink)}
+html[data-theme] :is(h1,h2,h3){font-family:var(--font-display);color:var(--ink);font-weight:600;letter-spacing:-.055em}
+html[data-theme] :is(button,input,select,textarea){font-family:inherit}
+html[data-theme] :is(button,a,input,select,textarea,summary):focus-visible{outline:2px solid var(--brand-accent);outline-offset:5px}
+html[data-theme] :is(.muted,.fine-print,.eyebrow,.task-description,.match,.guild-meta,.chart-caption,.location-status,.guild-notice,.radius-label,.quest-details,.task-bottom,.task-meta,.hero-player,footer){color:var(--subtle)}
+html[data-theme] .eyebrow{font-size:10px;letter-spacing:.14em;font-weight:500}
+html[data-theme] .sidebar{width:232px;background:var(--paper);border-color:var(--line);padding:35px 23px 24px}
+html[data-theme] .brand{color:var(--ink);margin:0;display:flex}
+.signature-wordmark{width:169px;height:auto;display:block;overflow:visible}
+html[data-theme] .side-label{font-size:9px;letter-spacing:.18em;color:var(--subtle);margin:20px 0 45px}
+html[data-theme] .nav-item{font-size:13px;color:var(--subtle);border-radius:6px;padding:14px 12px;transition:background .25s,transform .25s,color .25s}
+html[data-theme] .nav-item>span{color:inherit}
+html[data-theme] .nav-item:hover{background:var(--raised);color:var(--ink);transform:translateX(3px)}
+html[data-theme] .nav-item.active{background:var(--soft);color:var(--brand-accent);box-shadow:none;border-color:transparent}
+html[data-theme] .nav-item b{color:inherit}
+html[data-theme] .sidebar-note{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;padding:24px 0;margin-bottom:28px}
+html[data-theme] .sidebar-note>span{color:var(--brand-accent);font-size:35px}
+html[data-theme] .sidebar-note h3{color:var(--ink);font-size:32px}
+html[data-theme] .sidebar-note p{color:var(--subtle)}
+html[data-theme] .sidebar-profile{border-color:var(--line)}
+html[data-theme] .sidebar-profile strong{color:var(--ink)}
+html[data-theme] .sidebar-profile small{color:var(--subtle)}
+html[data-theme] .avatar{border:0;background:var(--soft);color:var(--brand-accent);border-radius:16px}
+html[data-theme] .avatar.small{border-radius:12px;background:var(--soft);color:var(--brand-accent)}
+html[data-theme] .person .avatar,html[data-theme] .ranking .avatar{color:#293327}
+html[data-theme] main{margin-left:232px}
+html[data-theme] header{background:var(--paper);border-color:var(--line);height:83px;padding:0 38px}
+html[data-theme] .breadcrumb{color:var(--subtle);font-size:11px}
+html[data-theme] .breadcrumb span{color:var(--ink)}
+html[data-theme] .header-actions #account-button{color:var(--ink)}
+html[data-theme] .theme-switch{border:1px solid var(--line);padding:9px 12px;border-radius:30px;font-size:11px;min-height:38px}
+html[data-theme] .content{max-width:1600px;padding:38px 38px 0}
+html[data-theme] .page-heading h1{font-size:clamp(30px,3.4vw,49px);line-height:1.13;max-width:850px;letter-spacing:-.065em}
+html[data-theme] h1>span{color:var(--subtle)}
+html[data-theme] .page-heading .eyebrow{color:var(--subtle);margin-bottom:15px;font-size:9px}
+html[data-theme] .page-heading p:last-child{color:var(--subtle);font-size:13px;line-height:1.7}
+html[data-theme] .demo-bar{background:transparent;border:0;border-block:1px solid var(--line);border-radius:0;padding:13px 0;margin:25px 0;font-size:11px;color:var(--subtle)}
+html[data-theme] .demo-bar b,html[data-theme] .toggle{color:var(--ink)}
+html[data-theme] .toggle>span{background:var(--line)}
+html[data-theme] .toggle input:checked+span{background:var(--brand-accent)}
+html[data-theme] .toggle input:checked+span:after{background:var(--accent-ink)}
+html[data-theme] .overview{grid-template-columns:minmax(0,1.9fr) minmax(260px,1fr);gap:20px;align-items:stretch}
+html[data-theme] .hero.player-hero{container-type:inline-size;background:var(--hero-bg);color:var(--hero-ink);border:0;border-radius:16px;min-height:445px;isolation:isolate}
+html[data-theme] .hero-copy{padding:32px;width:100%}
+html[data-theme] .hero-label{font-size:9px;letter-spacing:.13em;color:var(--hero-ink);gap:8px}
+html[data-theme] .hero-label i{background:var(--hero-ink);box-shadow:none}
+html[data-theme] .hero h2{font-size:clamp(42px,8.3cqi,76px);font-weight:600;line-height:.98;letter-spacing:-.075em;margin:28px 0 22px;color:var(--hero-ink)}
+html[data-theme] .hero h2>span{font-size:.67em;letter-spacing:-.065em}
+html[data-theme] .hero h2 em{color:var(--hero-ink);font-style:normal}
+html[data-theme] .hero p{font-size:12px;color:var(--hero-ink);line-height:1.8;max-width:70%}
+html[data-theme] .hero .button.cream{background:var(--hero-ink);color:var(--hero-bg);margin-top:24px;padding:14px 18px;font-size:11px;box-shadow:none;border-radius:6px}
+html[data-theme] .hero-player{color:var(--hero-ink);margin-top:21px;font-size:10px}
+html[data-theme] .player-class{background:#25321b0a;border-color:#25321b30;color:inherit}
+html[data-theme] .character-stage{right:14px;top:110px;bottom:auto;width:36%;height:auto;opacity:1;pointer-events:none;z-index:0}
+html[data-theme] .character-stage:before{display:none}
+.life-emblem{width:100%;color:var(--hero-ink);text-align:center}
+.life-emblem svg{width:100%;height:auto;overflow:visible}
+.emblem-guide{stroke:currentColor;stroke-dasharray:2 7;opacity:.35}
+.emblem-petal{fill:#b1c571;stroke:#25321b;stroke-width:1.2;fill-opacity:.74}
+.petal-1,.petal-4{fill:#879c55}.petal-2{fill:#e9f7bf}.petal-3{fill:#c5db8b}
+.emblem-core{fill:#25321b}.emblem-z{stroke:#e0edb5;stroke-width:5;stroke-linejoin:round}.emblem-ticks{stroke:currentColor;stroke-width:1}
+.emblem-caption{display:block;font-size:7px;letter-spacing:.18em;margin-top:16px}
+.emblem-petals{transform-origin:170px 170px;animation:emblem-unfold 1.3s var(--ease-out) both}
+@keyframes emblem-unfold{from{opacity:0;transform:rotate(-55deg) scale(.5)}to{opacity:1;transform:rotate(0) scale(1)}}
+@media(hover:hover) and (prefers-reduced-motion:no-preference){.player-hero:hover .emblem-petals{transform:rotate(18deg)}.emblem-petals{transition:transform 1.2s var(--ease-out)}html[data-theme] .hero .button:hover{transform:translateY(-3px)} }
+html[data-theme] .hero-footer{background:#25321b08;border-color:#25321b25;padding:18px 32px;gap:14px}
+html[data-theme] .hero-footer>span,html[data-theme] .hero-footer b{color:var(--hero-ink);font-size:9px}
+html[data-theme] .xp-track{background:var(--line);height:4px}
+html[data-theme] .xp-track>i{background:var(--brand-accent)}
+html[data-theme] .hero-footer .xp-track{background:#25321b20}
+html[data-theme] .hero-footer .xp-track>i{background:#25321b}
+html[data-theme] :is(.panel,.task-card,.person,dialog){background:var(--surface);border:1px solid var(--line);border-radius:14px;color:var(--ink);box-shadow:none}
+html[data-theme] .stats-panel{padding:28px 20px 18px;display:flex;flex-direction:column;justify-content:center;background:var(--surface)}
+html[data-theme] .stats-heading{align-items:flex-start}
+html[data-theme] .stats-panel h2{font-size:23px;line-height:1.15;margin-top:8px}
+html[data-theme] .mini-badge{color:var(--brand-accent);background:var(--soft);border-color:var(--line)}
+html[data-theme] .stats-panel svg{height:auto;width:100%;max-height:300px;margin:auto 0}
+html[data-theme] .stats-panel svg polygon:not([stroke-width]),html[data-theme] .stats-panel svg line{stroke:var(--line);fill:none}
+html[data-theme] .stats-panel svg polygon[stroke-width]{stroke:var(--brand-accent);fill:color-mix(in srgb,var(--brand-accent) 18%,transparent);transform-origin:50% 50%;animation:stats-grow .7s var(--ease-out)}
+@keyframes stats-grow{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+html[data-theme] .chart-label{fill:var(--subtle);font-size:10px}
+html[data-theme] .chart-value{fill:var(--brand-accent);font-size:11px}
+html[data-theme] .chart-caption{font-size:9px;line-height:1.8}
+html[data-theme] .game-summary{margin:20px 0 32px;background:var(--line);border:1px solid var(--line);border-radius:12px}
+html[data-theme] .game-summary>div,html[data-theme] .game-summary>button{background:var(--surface);padding:22px 17px;gap:12px}
+html[data-theme] .game-summary small{font-size:8px;letter-spacing:.11em;color:var(--subtle)}
+html[data-theme] .game-summary strong{font-size:31px;font-weight:500;color:var(--ink);letter-spacing:-.06em}
+html[data-theme] .game-summary em{display:block;margin:6px 0 0;font-size:9px;letter-spacing:0;color:var(--subtle)}
+html[data-theme] .summary-icon{background:var(--soft);color:var(--brand-accent);border-radius:50%}
+html[data-theme] .section-heading{margin:35px 0 20px}
+html[data-theme] .section-heading h2{font-size:29px;letter-spacing:-.05em}
+html[data-theme] .section-heading .eyebrow{font-size:9px}
+html[data-theme] .text-button{color:var(--brand-accent)}
+html[data-theme] .button{background:var(--brand-accent);color:var(--accent-ink);font-size:12px;min-height:42px;border-radius:6px;box-shadow:none;padding:12px 17px}
+html[data-theme] .button.light{background:var(--soft);color:var(--brand-accent);border:1px solid var(--line)}
+html[data-theme] .button:hover{filter:brightness(1.08);box-shadow:var(--shadow)}
+html[data-theme] .filters{gap:8px;flex-wrap:wrap;margin-bottom:24px}
+html[data-theme] .chip{border:1px solid var(--line);border-radius:30px;background:transparent;color:var(--subtle);font-size:11px;padding:10px 16px;min-height:40px}
+html[data-theme] .chip.selected{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+html[data-theme] .task-grid{gap:18px}
+html[data-theme] .task-card{padding:25px;border-top:1px solid var(--line);transition:transform .35s var(--ease-out),border-color .3s,box-shadow .3s}
+html[data-theme] .task-card:after{display:none}
+html[data-theme] .task-card:hover{border-color:var(--brand-accent);box-shadow:var(--shadow);transform:translateY(-5px)}
+html[data-theme] .task-top{margin-bottom:28px}
+html[data-theme] .task-icon{border-radius:50%;width:44px;height:44px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));border:1px solid var(--line)}
+html[data-theme] .reward{border:0;background:var(--raised);color:var(--ink);font-size:9px;letter-spacing:0;padding:7px 10px;border-radius:30px}
+html[data-theme] .task-card .eyebrow{font-size:9px;color:var(--subtle)}
+html[data-theme] .task-card h3{font-size:24px;line-height:1.15;letter-spacing:-.055em;margin:10px 0 14px}
+html[data-theme] .task-card p{color:var(--subtle)}
+html[data-theme] .task-description{font-size:12px;line-height:1.85}
+html[data-theme] .task-description strong{font-size:11px;color:var(--brand-accent)}
+html[data-theme] .quest-details{font-size:11px;padding:12px 0 20px}
+html[data-theme] .task-bottom{border-color:var(--line);gap:10px;flex-wrap:wrap}
+html[data-theme] .task-bottom>span{font-size:10px}
+html[data-theme] .start-task{border:1px solid var(--line);border-radius:5px;background:var(--soft);color:var(--brand-accent);font-size:11px;min-height:40px;padding:10px 13px}
+html[data-theme] .start-task:hover{background:var(--brand-accent);color:var(--accent-ink)}
+html[data-theme] .person{padding:28px;transition:transform .3s,border-color .3s}
+html[data-theme] .person:hover{border-color:var(--brand-accent);transform:translateY(-3px)}
+html[data-theme] .person h3{font-size:23px}
+html[data-theme] .person p,html[data-theme] .match{font-size:11px}
+html[data-theme] .location-panel{background:var(--surface)}
+html[data-theme] .location-status{border-color:var(--line)}
+html[data-theme] :is(.pill,.guild-emblem){background:var(--soft);color:var(--brand-accent);border-color:var(--line)}
+html[data-theme] :is(input,select,textarea){background:var(--paper);border:1px solid var(--line);color:var(--ink);border-radius:6px}
+html[data-theme] :is(.guild-quest,.empty-state){background:var(--raised);border-color:var(--line);color:var(--subtle)}
+html[data-theme] .ranking{border-color:var(--line);transition:background .2s}
+html[data-theme] .ranking:hover{background:var(--raised)}
+html[data-theme] .ranking.you{background:var(--soft)}
+html[data-theme] .ranking strong,html[data-theme] .rank-points{color:var(--ink)}
+html[data-theme] .rank{color:var(--subtle);font-family:var(--font-display)}
+html[data-theme] .rank-points{font-size:26px;font-weight:500}
+html[data-theme] .achievement{background:var(--raised);border-color:var(--line)}
+html[data-theme] .achievement strong{color:var(--ink)}
+html[data-theme] .achievement small{color:var(--subtle)}
+html[data-theme] .achievement.unlocked small{color:var(--brand-accent)}
+html[data-theme] .session{background:var(--soft);border-color:var(--line)}
+html[data-theme] .session h3,html[data-theme] .session strong{color:var(--ink)}
+html[data-theme] .session p{color:var(--subtle)}
+html[data-theme] .session-track{background:var(--line)}
+html[data-theme] .session-track i{background:var(--brand-accent)}
+html[data-theme] .focus-ring{background:conic-gradient(var(--brand-accent) var(--progress),var(--line) 0)}
+html[data-theme] .focus-ring>div{background:var(--surface)}
+html[data-theme] .focus-ring strong{color:var(--ink)}
+html[data-theme] :is(.focus-ring span,.focus-ring small,.quest-steps,.briefing-meta){color:var(--subtle)}
+html[data-theme] .dialog-x{background:var(--raised);color:var(--ink)}
+html[data-theme] .dialog-x:hover{background:var(--soft)}
+html[data-theme] .earned-reward{color:var(--brand-accent)}
+html[data-theme] #network-loading{background:var(--surface);color:var(--ink);border-color:var(--line)}
+html[data-theme] .loading-orbit,html[data-theme] .is-loading:before{border-color:var(--line);border-top-color:var(--brand-accent)}
+html[data-theme] #toast{background:var(--ink);color:var(--paper);border-color:var(--line);border-radius:8px;box-shadow:var(--shadow)}
+html[data-theme] footer{border-color:var(--line);font-size:10px;margin-top:40px}
+/* Short, finite entrance motion. Re-rendering the same page never replays a cascade. */
+.view-enter{animation:none}
+.view-enter>:is(.page-heading,.overview,.game-summary,.task-grid,.panel,.people-grid){animation:editorial-enter .65s var(--ease-out) both}
+.view-enter>.overview{animation-delay:60ms}.view-enter>.game-summary{animation-delay:110ms}.view-enter>.task-grid{animation-delay:150ms}
+@keyframes editorial-enter{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+html[data-theme] .button span,html[data-theme] .start-task span,html[data-theme] .quest-details span{transition:transform .25s var(--ease-out)}
+html[data-theme] .button:hover span,html[data-theme] .start-task:hover span,html[data-theme] .quest-details:hover span{transform:translateX(3px)}
+@media(min-width:801px) and (max-width:1180px){
+ html[data-theme] .sidebar{width:205px;padding-inline:18px}html[data-theme] main{margin-left:205px}html[data-theme] .content{padding:28px 24px 0}html[data-theme] header{padding-inline:24px}
+ html[data-theme] .overview{grid-template-columns:minmax(0,1.5fr) minmax(240px,1fr)}html[data-theme] .hero-copy{padding:27px 24px}html[data-theme] .hero h2{font-size:42px}html[data-theme] .character-stage{width:30%;right:8px;top:235px}html[data-theme] .emblem-caption{display:none}html[data-theme] .hero-footer{padding-inline:24px}html[data-theme] .game-summary>div,html[data-theme] .game-summary>button{padding:18px 12px;gap:9px}
+}
+@media(max-width:800px){
+ html[data-theme] .sidebar{width:min(310px,86vw);height:100dvh;padding:calc(32px + env(safe-area-inset-top)) 24px calc(24px + env(safe-area-inset-bottom));background:var(--paper)}html[data-theme] main{margin:0}
+ html[data-theme] .sidebar .nav-item{font-size:14px;min-height:50px;border-radius:6px}html[data-theme] .sidebar .side-label{margin:22px 0 35px}html[data-theme] .sidebar .brand{font-size:0}html[data-theme] .sidebar .nav-item.active{background:var(--soft)}
+ html[data-theme] .drawer-close,html[data-theme] .menu-toggle{background:var(--soft);border-color:var(--line);color:var(--brand-accent)}
+ html[data-theme] header{height:auto;min-height:72px;padding:calc(10px + env(safe-area-inset-top)) 20px 10px;gap:10px}html[data-theme] .content{padding:28px 22px 0}
+ html[data-theme] .overview{grid-template-columns:minmax(0,1.5fr) minmax(230px,1fr)}html[data-theme] .hero-copy{padding:25px}html[data-theme] .hero h2{font-size:43px}html[data-theme] .character-stage{width:30%;right:8px;top:235px}.emblem-caption{display:none}
+ html[data-theme] .hero-footer{padding:16px 24px}html[data-theme] .hero-label{font-size:8px}html[data-theme] .stats-panel{padding:24px 16px}html[data-theme] .game-summary{grid-template-columns:repeat(2,1fr)}html[data-theme] .game-summary em{display:inline;margin-left:8px}
+}
+@media(max-width:620px){
+ html[data-theme] .overview{grid-template-columns:minmax(0,1fr)}html[data-theme] .hero.player-hero{min-height:435px}html[data-theme] .hero h2{font-size:clamp(46px,12cqi,64px)}html[data-theme] .character-stage{width:28%;right:8px;top:230px}html[data-theme] .hero-copy{padding:27px 24px}html[data-theme] .hero p{font-size:11px;max-width:75%}html[data-theme] .hero-player{font-size:9px}html[data-theme] .hero-footer>span,html[data-theme] .hero-footer b{font-size:8px}html[data-theme] .stats-panel svg{height:270px;margin:12px 0}html[data-theme] .stats-panel h2{font-size:26px}
+ html[data-theme] .page-heading h1{font-size:36px}html[data-theme] .page-heading .eyebrow{font-size:8px}html[data-theme] .page-heading p:last-child{font-size:12px}
+ html[data-theme] .header-actions{width:auto;gap:8px;flex-wrap:wrap}html[data-theme] .header-actions #account-button{font-size:10px}html[data-theme] .header-actions .avatar{display:none}html[data-theme] .theme-switch{font-size:10px;padding:8px 10px}html[data-theme] .breadcrumb{font-size:0}html[data-theme] .breadcrumb span{font-size:11px;margin:0}
+ html[data-theme] .game-summary>div,html[data-theme] .game-summary>button{padding:17px 13px}html[data-theme] .game-summary em{display:block;margin:6px 0 0;font-size:8px}html[data-theme] .game-summary small{font-size:7px}html[data-theme] .game-summary strong{font-size:28px}html[data-theme] .summary-icon{width:30px;height:30px}
+ html[data-theme] .demo-bar{font-size:10px;align-items:center}html[data-theme] .demo-bar>span{max-width:65%}html[data-theme] .toggle{font-size:9px;white-space:normal}
+ html[data-theme] .section-heading h2{font-size:26px}html[data-theme] .section-heading .eyebrow{font-size:8px;max-width:240px}html[data-theme] .section-heading>.text-button{max-width:90px;font-size:10px}html[data-theme] .chip{padding:9px 13px;font-size:10px;min-height:42px}
+ html[data-theme] .task-card{padding:25px}html[data-theme] .task-card h3{font-size:27px}html[data-theme] .task-bottom>span{font-size:10px}html[data-theme] .start-task{font-size:11px}html[data-theme] :is(input:not([type=checkbox]),select,textarea){font-size:16px}html[data-theme] .button{min-height:44px}html[data-theme] .location-controls .button{font-size:11px}html[data-theme] footer{font-size:9px}
+}
+@media(max-width:360px){html[data-theme] .content{padding-inline:16px}html[data-theme] .hero-copy{padding-inline:20px}html[data-theme] .hero h2{font-size:44px}html[data-theme] .character-stage{width:28%;right:5px;top:235px}html[data-theme] .hero-footer{padding-inline:20px}html[data-theme] .game-summary>div,html[data-theme] .game-summary>button{padding:16px 10px;gap:8px}html[data-theme] .breadcrumb{display:none}html[data-theme] .header-actions{margin-left:auto}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+::view-transition-old(root){animation:theme-away .3s ease both}::view-transition-new(root){animation:theme-arrive .4s ease both}
+@keyframes theme-away{to{opacity:0}}@keyframes theme-arrive{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none!important}}
+
+/* Explicit nested selectors also replace legacy light-theme detail colors. */
+html[data-theme] .stats-panel .chart-label{fill:var(--subtle)}
+html[data-theme] .stats-panel .chart-value{fill:var(--brand-accent)}
+html[data-theme] .nav-item.active>span{color:inherit}
+html[data-theme] .sidebar-note .xp-track{background:var(--line)}
+html[data-theme] .summary-icon:is(.violet,.mint,.gold,.pink){background:var(--soft);color:var(--brand-accent)}
+html[data-theme] .task-bottom>span{color:var(--subtle)}
