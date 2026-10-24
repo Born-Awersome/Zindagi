@@ -5,8 +5,8 @@ export function installCulturalVideoRoutes({app,db,now}) {
     CREATE INDEX IF NOT EXISTS moments_date ON moments(created_at DESC);`);
   const get=(s,...a)=>db.prepare(s).get(...a),run=(s,...a)=>db.prepare(s).run(...a);
   function publish(user,bytes,mime,recording){
-    if(!recording)throw fail(400,'Publish a video through a Cultural challenge.');
-    if(get('SELECT COUNT(*) n FROM moments WHERE user_id=? AND recording_id IS NOT NULL',user).n>=10)throw fail(409,'You can keep 10 public Cultural videos. Remove an older post first, or submit your quest privately.');
+    if(!recording)throw fail(400,'Publish a photo or video through a Cultural challenge.');
+    if(get('SELECT COUNT(*) n FROM moments WHERE user_id=? AND recording_id IS NOT NULL',user).n>=10)throw fail(409,'You can keep 10 public Cultural posts. Remove an older post first, or submit your quest privately.');
     if(get('SELECT COALESCE(SUM(bytes),0) n FROM moments').n+bytes.length>1024*1024*1024)throw fail(409,'Public media storage is full. Submit privately or try later.');
     const id=randomUUID();run('INSERT INTO moments VALUES(?,?,?,?,?,?,?)',id,user,mime,bytes,bytes.length,now(),recording);return id;
   }
@@ -35,7 +35,7 @@ export function installCulturalVideoRoutes({app,db,now}) {
     res.send(media);
   });
   app.delete('/api/cultural-videos/:id',(req,res)=>{
-    const post=get('SELECT user_id FROM moments WHERE id=?',req.params.id);if(!post)throw fail(404,'Video not found.');if(post.user_id!==req.user)throw fail(403,'Only the creator can remove this video.');
+    const post=get('SELECT user_id FROM moments WHERE id=?',req.params.id);if(!post)throw fail(404,'Video not found.');if(post.user_id!==req.user)throw fail(403,'Only the creator can remove this post.');
     run('DELETE FROM moments WHERE id=?',req.params.id);res.json({ok:true});
   });
   return publish;

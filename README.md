@@ -1,6 +1,6 @@
 # Zindagi
 
-A life-gamification website with a Node.js/Express backend, SQLite persistence, real accounts, opt-in precise location checks, shared guilds, category leaderboards, and explainable recommendations. The original browser-only demo remains available when signed out.
+A life-gamification website with a Node.js/Express backend, SQLite persistence, real accounts, opt-in precise location checks, shared guilds, category leaderboards, and explainable recommendations. Sign in to use the app. All visible progress, streaks, requests and scores are backed by the server.
 
 ## Run on your computer
 
@@ -32,7 +32,7 @@ Open `http://localhost:3001`. The backend serves both `dist/` and `/api`. `npm r
 5. Use **Community → Find people** to find an exact username and send a request. Friends can be accepted anywhere; Connect requires both people to enable precise location in My profile and pass a fresh 5–40 metre proximity check. Profile discovery controls listing in nearby recommendations, not direct username requests. Location requires HTTPS or localhost.
 6. **Community** recommends actual opt-in accounts. New databases have no fake accounts or scores; empty results are expected until others sign up. Recommendations refresh on page navigation and via Refresh.
 
-Your local demo progress is preserved separately and is never imported into competitive scores. Sign out to try accelerated 20-second demo sessions for timed quests. Cultural always requires a fresh camera recording, even in demo mode. Signed-in timed tasks use their full duration, including **50 minutes study + 10 minutes rest = 1 Academic Point**.
+Demo mode has been removed. Legacy browser-only progress is left untouched on the device and is never imported into account scores. Timed tasks use their full duration, including **50 minutes study + 10 minutes rest = 1 Academic Point**.
 
 ## Backend behavior
 
@@ -71,46 +71,35 @@ npm test
 npm run build
 ```
 
-Tests cover auth, cross-user access, scoring/timing and duplicate completion, guild membership/leaderboards, discovery opt-in/expiry, database restart persistence, recommendation behavior, and original local-demo logic.
+Tests cover auth, cross-user access, scoring/timing and duplicate completion, guild membership/leaderboards, discovery opt-in/expiry, database restart persistence, recommendation behavior, photos, videos, streak calendar boundaries, and legacy data compatibility.
 
 - `src/data.js`: task/category definitions, shared with the server. Task rewards outside academics are provisional product choices.
 - `src/main.js`, `src/style.css`: screens, timer, radar chart, styling.
 - `src/live.js`: API client, account UI, live discovery and guild interface.
-- `src/guilds.js`, `src/guild-model.js`, `src/state.js`: signed-out local demo.
+- `src/state.js`, `src/guild-model.js`: retained legacy data helpers; the live app does not run browser-only scoring.
 - `server/app.js`: database schema, authentication, profiles, task sessions, discovery, guild APIs.
 - `server/recommendations.js`: ranking functions and weights.
 - `vite.config.js`, `scripts/dev.js`: development proxy and combined startup.
 
-Vite updates the frontend as you edit; Node restarts the API when backend files change. API restarts clear temporary location presence, but keep account data. Fonts use an optional Google Fonts stylesheet with local fallbacks.
+Vite updates the frontend as you edit; Node restarts the API when backend files change. API restarts clear temporary location presence, but keep account data. Fonts are hosted locally with system fallbacks.
 
 ## Adventure interface
 
 The dashboard now has a player card, level progress, color-coded quest cards, and a skill constellation. Every five total points raises your player level. **View quest briefing** explains a task before you accept it; **Enter focus mode** opens a distraction-free timer with pause/resume. Completing a session shows its point reward and celebrates level-ups. **My profile → Achievements** shows unlock requirements and progress for four badges. Badges are derived from existing points and never grant extra competitive points.
 
-The new visual layer lives in `src/game.css`; reusable illustrations, icons, level calculations, and badge definitions live in `src/game.js`. It supports mobile navigation, keyboard-operable dialogs, and reduced-motion preferences. Signed-out demo mode and account-backed scoring remain separate.
+The new visual layer lives in `src/game.css`; reusable illustrations, icons, level calculations, and badge definitions live in `src/game.js`. It supports mobile navigation, keyboard-operable dialogs, and reduced-motion preferences. Sign-in is required; account scoring is owned by the backend.
 
 
 ## Cultural: record your talent
 
 The fifth aspect is now **Cultural**. Choose **Record talent** on its quest card, or open the quest briefing and accept it:
 
-1. Enable camera and microphone access. Nothing records until you press **Start recording**.
-2. Perform a short piece of music, guitar, singing, dance, or another cultural talent. Press **Stop recording** when finished. The 60-second maximum bounds clip size; it is not a task countdown or a reward for waiting.
-3. Play back your take. **Retake** discards it and lets you capture a new one.
-4. **Submit performance** awards **1 Cultural Point**. There is no file input, gallery picker, or drag-and-drop import. Ending/closing without submission gives no point.
+1. Choose **Photo** or **Video** before enabling the camera. Photos require only camera permission; videos also require microphone permission.
+2. For a photo, press **Take photo**. For a video, press **Start recording**, perform, then **Stop recording** (maximum 60 seconds).
+3. Review the capture, retake if needed, then submit for **1 Cultural Point**. There is no file picker or upload-from-gallery option.
+4. Optionally choose to share the photo/video with signed-in members. Shared captures appear in the Cultural gallery, can be viewed repeatedly, and can be removed by their creator. Private capture bytes are discarded after processing.
 
-Recording requires a supported `MediaRecorder` browser (current Chrome, Edge, Firefox, or Safari), a camera and microphone, and **localhost or HTTPS**. Access from a plain HTTP Wi-Fi address usually cannot record. Permission denial shows a retry message instead of offering file selection. Devices stop after recording, when the tab is hidden, or when the dialog closes. If a crash leaves a pending server session, use **Discard an unfinished recording** after the conflict message; otherwise it expires after 15 minutes.
-
-In local demo mode, the clip exists only in memory and never leaves the browser. For a signed-in account, clicking Submit transfers the captured clip to the same backend. The server accepts supported WebM/MP4 containers up to 15 MiB with an owned, unexpired recording session; it rejects empty/malformed submissions and exact duplicate clips per account. Awards and receipts commit together, and retries of an accepted submission cannot add a second point. By default, the server discards the bytes after processing and saves only a hash, byte count, MIME type, and award. Selecting **Share this Cultural video publicly** also saves the clip in the Cultural gallery on Challenges. Existing/private submissions are never published retroactively.
-
-The supported interface is direct capture only. Container checks and recording-session ownership are **not** forensic liveness checks, talent assessment, or proof against a modified client submitting synthetic/re-encoded media. A production verified competition would need a separate verification design; this release does not claim one.
-
-Existing **Creativity** points, interests, local history, and guild focuses migrate to Cultural without changing totals. Unfinished legacy creative timers are cancelled so they cannot award a recording point. The migration is idempotent on both the server and in browser state.
-
-- `src/cultural-recorder.js`: permission, live preview, recording, review, cleanup, and retry UI.
-- `src/recording-policy.js`: supported types and capture limits.
-- `server/recordings.js`: recording endpoints, validation, receipts, and database migration.
-- `test/cultural.test.js`: migration, recording-only awards, API ownership, cancellation/expiry, and duplicate prevention.
+Camera capture requires localhost or HTTPS. Video requires a supported MediaRecorder browser. Photos are generated as JPEGs up to 1280 pixels and validated up to 5 MiB/4096 pixels; WebM/MP4 videos are limited to 15 MiB. The server requires an owned, unexpired capture ticket and rejects exact duplicate media rewards. Accepted submission retries award only once. Guild captures remain subject to leader approval. Devices stop on capture completion, dialog close, sign-out or loss of the account session. An abandoned ticket can be discarded in-app or expires after 15 minutes.
 
 ## Themes and guild quests
 
@@ -230,3 +219,25 @@ hidden and clear coordinates from the server; the 30-second freshness and 5–40
 metre Connect acceptance rules are unchanged. The status card shows accuracy,
 reading age, and own-device GPS readiness separately from the peer/distance
 checks. Its updates and Stop action preserve unsaved profile form edits.
+
+
+## Daily streaks
+
+Home and Profile show a current streak, best streak, and seven-day activity strip.
+One or more completed challenges counts as one active day. Approved guild tasks
+count on their original submission day. Pending/rejected guild tasks and incomplete
+timers do not count. Yesterday's streak stays active until the end of today;
+missing a whole day resets the current streak while preserving the best.
+
+The backend calculates streaks from all recorded awards and approved submissions,
+not the 100-entry journal window. Days use the account's IANA time zone, including
+DST transitions. New accounts use their browser's time zone; older accounts start
+with Asia/Kolkata. Change the streak time zone in Profile. Changing it recalculates
+calendar grouping; streaks never add points. Legacy local practice entries do not
+count toward account streaks.
+
+For deployment, use a single Node process with a persistent database volume,
+regular backups, HTTPS, and `NODE_ENV=production` plus the intended `APP_ORIGIN`.
+The project does not yet include email recovery, end-to-end message encryption,
+or an administration/moderation console. These are deployment considerations,
+not features added by removing demo mode.

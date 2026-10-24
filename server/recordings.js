@@ -1,6 +1,6 @@
 import express from 'express';
 import { randomUUID, createHash } from 'node:crypto';
-import { MAX_RECORDING_BYTES, MIN_RECORDING_BYTES, RECORDING_TICKET_MS, RECORDING_MIME_TYPES } from '../src/recording-policy.js';
+import { MAX_PHOTO_BYTES, MAX_RECORDING_BYTES, MIN_RECORDING_BYTES, RECORDING_TICKET_MS, RECORDING_MIME_TYPES } from '../src/recording-policy.js';
 const fail = (status, message) => Object.assign(new Error(message), {status});
 
 export function migrateCultural(db) {
@@ -22,9 +22,19 @@ export function migrateCultural(db) {
 
 export function validateRecording(bytes, contentType) {
   const mime = contentType?.split(';')[0].trim().toLowerCase();
-  if (!RECORDING_MIME_TYPES.includes(mime)) throw fail(415, 'Record with a supported browser (WebM or MP4 video).');
+  if (!RECORDING_MIME_TYPES.includes(mime)) throw fail(415, 'Capture a JPEG photo or a WebM/MP4 video.');
   if (!Buffer.isBuffer(bytes) || bytes.length < MIN_RECORDING_BYTES) throw fail(400, 'The recording is empty or too short. Please record your performance again.');
   if (bytes.length > MAX_RECORDING_BYTES) throw fail(413, 'The recording is too large. Keep your performance under 60 seconds.');
+  if(mime==='image/jpeg'){
+    if(bytes.length>MAX_PHOTO_BYTES)throw fail(413,'Photo is too large. Retake at a lower resolution.');
+    if(bytes[0]!==255||bytes[1]!==216||bytes.at(-2)!==255||bytes.at(-1)!==217)throw fail(400,'Capture a valid JPEG photo.');
+    let offset=2,dimensions=false;
+    while(offset+4<bytes.length){if(bytes[offset]!==255)break;const marker=bytes[offset+1];offset+=2;if(marker===0xda||marker===0xd9)break;if(marker===0xff){offset--;continue;}const length=bytes.readUInt16BE(offset);if(length<2||offset+length>bytes.length)break;
+      if([0xc0,0xc1,0xc2].includes(marker)&&length>=8){const h=bytes.readUInt16BE(offset+3),w=bytes.readUInt16BE(offset+5);dimensions=w>0&&h>0&&w<=4096&&h<=4096;break;}offset+=length;
+    }
+    if(!dimensions)throw fail(400,'Capture a photo with valid dimensions up to 4096 pixels.');
+    return {mime,digest:createHash('sha256').update(bytes).digest('hex'),bytes:bytes.length};
+  }
   const headerMatches = mime === 'video/webm'
     ? bytes.subarray(0,4).equals(Buffer.from([0x1a,0x45,0xdf,0xa3]))
     : bytes.subarray(4,8).toString('ascii') === 'ftyp';

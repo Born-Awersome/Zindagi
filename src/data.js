@@ -10,7 +10,7 @@ export const tasks = [
   { id: 'portfolio', category: 'career', title: 'Build something you’re proud of', description: 'Spend an hour making progress on a portfolio project. Finish with one clear deliverable.', minutes: 60, points: 1, tag: 'BUILD YOUR FUTURE' },
   { id: 'connect', category: 'social', title: 'Have a meaningful conversation', description: 'Connect with someone in your field. Ask about their journey and write down three takeaways.', minutes: 30, points: 1, tag: 'MAKE A CONNECTION' },
   { id: 'move', category: 'fitness', title: 'Show up for your body', description: 'Complete a 30-minute workout at a pace that suits you, including a warm-up and cooldown.', minutes: 30, points: 1, tag: 'MOVE WITH PURPOSE' },
-  { id: 'create', category: 'cultural', mode: 'recording', title: 'Showcase your cultural talent', description: 'Sing, play guitar, dance, or share another cultural talent. Record a fresh performance with your camera and microphone, review it, and submit it.', points: 1, tag: 'YOUR TALENT. YOUR STAGE.' },
+  { id: 'create', category: 'cultural', mode: 'recording', title: 'Showcase your cultural talent', description: 'Sing, play guitar, dance, or share another cultural talent. Capture a fresh photo or video with your camera, review it, and submit it.', points: 1, tag: 'YOUR TALENT. YOUR STAGE.' },
 ];
 export const people = [
   { name: 'Aarav Mehta', initials: 'AM', role: 'Learning a little, every day', category: 'academics', points: 24, color: '#eadcca' },
