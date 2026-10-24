@@ -1,7 +1,7 @@
 /* Community: an address book and a quiet place to talk, not a dashboard of cards. */
 .content[data-view=Community]>.page-heading,.content[data-view=Community]>.demo-bar{display:none}
-.community-hub{--warm:#d9ae88;--warm-soft:#342c24;min-height:65vh}
-[data-theme=light] .community-hub{--warm:#7e5135;--warm-soft:#f0e4d6}
+.community-hub{--warm:#d2abe4;--warm-soft:#433552;min-height:65vh}
+[data-theme=light] .community-hub{--warm:#805338;--warm-soft:#f0dfce}
 .community-masthead{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:12px 0 30px;border-bottom:1px solid var(--line)}
 html[data-theme] .community-masthead h1{font-size:clamp(32px,4vw,49px);margin:12px 0;letter-spacing:-.055em;font-weight:500}
 .community-masthead p:last-child{font-size:14px;color:var(--subtle);line-height:1.7}

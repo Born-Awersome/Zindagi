@@ -10,7 +10,7 @@ or to represent a verified survey of 2025–2026 award winners.
 ## Typography and identity
 
 - `src/identity.js` draws original Zindagi wordmark paths and a five-petal emblem.
-  The wordmark is custom lettering, not a complete custom typeface.
+  The wordmark is custom lettering, not a complete custom typeface. The installed app icon uses the light neutral palette.
 - Space Grotesk is the interface/display font, locally hosted in `public/fonts`.
   Copyright and SIL Open Font License are included in `OFL-SpaceGrotesk.txt`.
   Source: https://github.com/google/fonts/tree/main/ofl/spacegrotesk .
@@ -21,9 +21,8 @@ or to represent a verified survey of 2025–2026 award winners.
 ## Theme and layout
 
 `src/identity.css` owns the identity tokens: paper, surface, raised, ink, subtle,
-line, brand-accent, accent-ink, soft, hero-bg and hero-ink. Dark uses forest black
-and acid lime; light uses warm paper and olive ink. Categories retain their color
-cues. The saved theme wins; first-time visitors follow their device preference.
+line, brand-accent, accent-ink, soft, hero-bg and hero-ink. Dark uses slate blue, indigo, and purple; light uses cream, sand, peach, and warm brown from the supplied palette references. Categories retain their color
+cues. The saved theme wins; first-time visitors start in light mode regardless of their device preference.
 
 The dashboard leads with the slogan and five-aspect emblem, followed by progress
 metrics, quest cards and people. All existing pages use the shared theme. Mobile
@@ -44,3 +43,6 @@ Production build, existing server/unit suite, and browser checks covering both
 themes on all six pages at 320, 390, 768, 1024 and 1440 pixel widths; drawer
 keyboard dismissal, quest briefing, session controls and reduced motion. Location,
 request consent, scoring and media permissions are unchanged by the redesign.
+
+The “Five aspects. One you.” caption sits centered across the hero, separate from
+the decorative emblem, with readable text on desktop and mobile.

@@ -1,7 +1,7 @@
-let theme='dark';
-try{theme=localStorage.getItem('zindagi-theme')|| (matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');}catch{}
-if(!['light','dark'].includes(theme))theme='dark';
-function applyTheme(){document.documentElement.dataset.theme=theme;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='dark'?'#141714':'#f2f0e8');}
+let theme='light';
+try{theme=localStorage.getItem('zindagi-theme')||'light';}catch{}
+if(!['light','dark'].includes(theme))theme='light';
+function applyTheme(){document.documentElement.dataset.theme=theme;document.querySelector('meta[name="theme-color"]')?.setAttribute('content',theme==='dark'?'#1c2a36':'#faf1e7');}
 applyTheme();
 export function themeButton(){return `<button class="text-button theme-switch" id="theme-switch" aria-label="Switch to ${theme==='dark'?'light':'dark'} mode">${theme==='dark'?'☀ Light mode':'☾ Dark mode'}</button>`;}
 export function bindTheme(){document.querySelector('#theme-switch')?.addEventListener('click',e=>{
