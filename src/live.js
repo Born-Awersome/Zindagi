@@ -1,3 +1,4 @@
+import { startLoading } from './interface.js';
 import { guildQuests, bindGuildQuests } from './guild-quests.js';
 import { categories } from './data.js';
 export const live={user:null,people:[],tasks:[],guilds:[],leaderboard:[],guildBoard:[],guildTasks:{},selected:null,aspect:'all',radius:10,nearby:false,locationMessage:'Location sharing is off.',nearbyGuildIds:[],loading:false,error:''};
@@ -5,9 +6,11 @@ let hooks={},watch=null,locationGeneration=0,locationQueue=Promise.resolve(),las
 let guildDraft={name:'',description:'',aspect:'academics'};
 export function configureLive(callbacks){hooks=callbacks;}
 export async function api(path,method='GET',body){
+  const finish=startLoading();try {
   const res=await fetch(`/api${path}`,{method,headers:{'Content-Type':'application/json','X-Zindagi':'1'},credentials:'same-origin',...(body===undefined?{}:{body:JSON.stringify(body)})});
   const data=await res.json().catch(()=>({error:'The server returned an unexpected response.'}));
   if(!res.ok)throw Object.assign(new Error(data.error||'Request failed.'),{status:res.status});return data;
+  }finally{finish();}
 }
 export function acceptAccount(data,authenticate=false){if(!authenticate&&live.user?.id!==data.id)return;live.user=data;hooks.accept(data);}
 export async function refreshLive(){

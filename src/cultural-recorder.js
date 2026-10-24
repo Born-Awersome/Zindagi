@@ -26,7 +26,7 @@ export function openCulturalRecorder({account, guildPoints=null, begin, discard,
   activeRecorder = {close};
   function error(message){el('error').textContent=message;}
   function phaseTo(next,message){
-    phase=next;
+    phase=next;dialog.dataset.phase=next;
     if(message)el('status').textContent=message;
     el('enable').hidden=!['intro','error'].includes(next);
     el('enable').textContent=next==='error'?'Try camera again':'Enable camera & microphone';

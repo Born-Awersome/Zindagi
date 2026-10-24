@@ -157,3 +157,9 @@ Do not delete `data/zindagi.sqlite`, `-wal`, or `-shm` files to clear a lock; th
 Build and start the server, open its HTTPS address, and select **Install app**. Android users can also use Chrome's install menu; iPhone users use Safari → Share → Add to Home Screen. Zindagi launches from its icon in a standalone app window, using the same accounts, guilds, points, and Cultural videos.
 
 The backend must remain online for shared features. An offline reconnect screen is provided; private API data and videos are not cached, and submissions are not queued offline. Use a stable HTTPS address for an app you intend to keep installed. See [PWA installation and operation](docs/pwa.md).
+
+## Navigation and motion
+
+On phones and tablets, use the header menu button to open the sliding navigation drawer. It includes Dashboard, Challenges, Leaderboard, Community, Guilds, and My profile; the mobile bottom tab bar has been removed. Tap outside or press Escape to close it. Keyboard focus stays inside while open, and the desktop sidebar remains available on larger screens.
+
+The initial app screen, active API requests, recording preparation/submission, and video buffering have loading animations tied to their actual state. Pages and dialogs enter smoothly, and dropdown/disclosure arrows animate while opening. Native selects and video controls remain intact. Reduced-motion preferences disable these animations. Implementation: `src/interface.js` and `src/motion.css`.

@@ -1,9 +1,6 @@
 /* Keep app controls clear of phone notches and gesture bars. */
 @media(max-width:540px){
   header{padding-top:env(safe-area-inset-top);height:calc(61px + env(safe-area-inset-top));padding-left:max(18px,env(safe-area-inset-left));padding-right:max(18px,env(safe-area-inset-right))}
-  .sidebar{height:calc(67px + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom)}
-  main{margin-bottom:calc(67px + env(safe-area-inset-bottom))}
-  #toast{bottom:calc(81px + env(safe-area-inset-bottom))}
   input:not([type=checkbox]),select,textarea{font-size:16px}
   .button,.start-task,.chip{min-height:44px}
 }
